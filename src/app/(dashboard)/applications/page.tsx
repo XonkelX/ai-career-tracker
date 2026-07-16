@@ -8,20 +8,29 @@ import {
   ApplicationListError,
   ApplicationListLoading,
 } from "@/features/applications/components/application-list";
-import { ApplicationSearchForm } from "@/features/applications/components/application-search-form";
 import {
-  listJobApplications,
-  normalizeApplicationSearch,
-} from "@/server/applications/list-job-applications";
+  applicationListUrlNeedsNormalization,
+  buildApplicationListSearchParams,
+  hasActiveApplicationFilters,
+  parseApplicationListUrlState,
+  type ApplicationListSearchParams,
+  type ApplicationListUrlState,
+} from "@/features/applications/application-list-filters";
+import { ApplicationFilterForm } from "@/features/applications/components/application-search-form";
+import { listJobApplications } from "@/server/applications/list-job-applications";
 import { requireAuthenticatedUser } from "@/server/auth/session";
 
 export const metadata: Metadata = {
   title: "Job applications",
 };
 
-async function ApplicationsContent({ search }: { search: string }) {
+async function ApplicationsContent({
+  state,
+}: {
+  state: ApplicationListUrlState;
+}) {
   const user = await requireAuthenticatedUser();
-  const result = await listJobApplications(user.id, search);
+  const result = await listJobApplications(user.id, state);
 
   if (!result.success) {
     return <ApplicationListError message={result.message} />;
@@ -30,8 +39,8 @@ async function ApplicationsContent({ search }: { search: string }) {
   return (
     <ApplicationList
       applications={result.applications}
-      key={search}
-      searchTerm={search}
+      hasActiveFilters={hasActiveApplicationFilters(state)}
+      searchTerm={state.search}
     />
   );
 }
@@ -39,18 +48,18 @@ async function ApplicationsContent({ search }: { search: string }) {
 export default async function ApplicationsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ search?: string | string[] }>;
+  searchParams: Promise<ApplicationListSearchParams>;
 }) {
   const params = await searchParams;
-  const rawSearch = Array.isArray(params.search)
-    ? (params.search[0] ?? "")
-    : (params.search ?? "");
-  const search = normalizeApplicationSearch(rawSearch);
+  const state = parseApplicationListUrlState(params);
+  const canonicalParams = buildApplicationListSearchParams(state);
 
-  if (rawSearch !== search) {
-    const canonicalParams = new URLSearchParams({ search });
-    redirect(`/applications?${canonicalParams.toString()}`);
+  if (applicationListUrlNeedsNormalization(params, state)) {
+    const query = canonicalParams.toString();
+    redirect(query ? `/applications?${query}` : "/applications");
   }
+
+  const stateKey = canonicalParams.toString();
 
   return (
     <section aria-labelledby="page-title">
@@ -76,10 +85,13 @@ export default async function ApplicationsPage({
         </Link>
       </div>
 
-      <ApplicationSearchForm searchTerm={search} />
+      <ApplicationFilterForm key={`form:${stateKey}`} state={state} />
 
-      <Suspense fallback={<ApplicationListLoading />} key={search}>
-        <ApplicationsContent search={search} />
+      <Suspense
+        fallback={<ApplicationListLoading />}
+        key={`results:${stateKey}`}
+      >
+        <ApplicationsContent state={state} />
       </Suspense>
     </section>
   );

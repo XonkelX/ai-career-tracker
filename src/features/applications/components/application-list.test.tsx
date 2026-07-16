@@ -79,10 +79,23 @@ describe("ApplicationList", () => {
       screen.getByRole("heading", { name: "No applications found" }),
     ).toBeVisible();
     expect(screen.getByText(/No applications match “Acme”/)).toBeVisible();
-    expect(screen.getByRole("link", { name: "Clear search" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Clear all" })).toHaveAttribute(
       "href",
       "/applications",
     );
+  });
+
+  it("renders a dedicated empty state for combined search and filters", () => {
+    render(
+      <ApplicationList applications={[]} hasActiveFilters searchTerm="Acme" />,
+    );
+
+    expect(
+      screen.getByRole("heading", { name: "No applications found" }),
+    ).toBeVisible();
+    expect(
+      screen.getByText("No applications match “Acme” and the active filters."),
+    ).toBeVisible();
   });
 
   it("renders safe error and non-focusing loading states", () => {

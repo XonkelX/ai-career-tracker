@@ -2,23 +2,37 @@ import type {
   ApplicationStatus,
   SalaryPeriod,
 } from "@/generated/prisma/client";
+import type {
+  DeadlineFilter,
+  SalaryFilter,
+} from "@/features/applications/application-list-filters";
+import { normalizeApplicationSearch } from "@/features/applications/application-list-filters";
 
 export const GENERIC_APPLICATION_LIST_ERROR =
   "We could not load your applications. Please try again.";
 
-export function normalizeApplicationSearch(search: string): string {
-  return search.trim().replace(/\s+/g, " ");
-}
+type ApplicationFilterCondition =
+  | {
+      OR: [
+        { companyName: { contains: string; mode: "insensitive" } },
+        { jobTitle: { contains: string; mode: "insensitive" } },
+      ];
+    }
+  | { status: ApplicationStatus }
+  | {
+      OR: [
+        { salaryMinMinor: { not: null } },
+        { salaryMaxMinor: { not: null } },
+      ];
+    }
+  | { AND: [{ salaryMinMinor: null }, { salaryMaxMinor: null }] }
+  | { deadline: { gte: Date } }
+  | { deadline: { lt: Date } }
+  | { deadline: null };
 
-interface ApplicationSearchCondition {
-  OR?: [
-    { companyName: { contains: string; mode: "insensitive" } },
-    { jobTitle: { contains: string; mode: "insensitive" } },
-  ];
-}
-
-interface ApplicationListWhere extends ApplicationSearchCondition {
+interface ApplicationListWhere {
   userId: string;
+  AND?: ApplicationFilterCondition[];
 }
 
 interface JobApplicationListRecord {
@@ -110,37 +124,94 @@ function serializeApplication(
   };
 }
 
+function startOfUtcDay(date: Date): Date {
+  return new Date(
+    Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()),
+  );
+}
+
+function buildSalaryCondition(
+  salary: SalaryFilter,
+): ApplicationFilterCondition | null {
+  if (salary === "with-salary") {
+    return {
+      OR: [
+        { salaryMinMinor: { not: null } },
+        { salaryMaxMinor: { not: null } },
+      ],
+    };
+  }
+  if (salary === "without-salary") {
+    return {
+      AND: [{ salaryMinMinor: null }, { salaryMaxMinor: null }],
+    };
+  }
+  return null;
+}
+
+function buildDeadlineCondition(
+  deadline: DeadlineFilter,
+  today: Date,
+): ApplicationFilterCondition | null {
+  if (deadline === "upcoming") return { deadline: { gte: today } };
+  if (deadline === "overdue") return { deadline: { lt: today } };
+  if (deadline === "no-deadline") return { deadline: null };
+  return null;
+}
+
+export interface ListJobApplicationsOptions {
+  asOf?: Date;
+  search?: string;
+  status?: ApplicationStatus | null;
+  salary?: SalaryFilter;
+  deadline?: DeadlineFilter;
+}
+
 export async function listJobApplications(
   userId: string,
-  search = "",
+  options: ListJobApplicationsOptions = {},
   dependencies: ListJobApplicationsDependencies = defaultDependencies,
 ): Promise<
   | { success: true; applications: ApplicationListItem[] }
   | { success: false; message: string }
 > {
   try {
-    const normalizedSearch = normalizeApplicationSearch(search);
-    const searchCondition: ApplicationSearchCondition = normalizedSearch
-      ? {
-          OR: [
-            {
-              companyName: {
-                contains: normalizedSearch,
-                mode: "insensitive",
-              },
+    const normalizedSearch = normalizeApplicationSearch(options.search ?? "");
+    const conditions: ApplicationFilterCondition[] = [];
+    if (normalizedSearch) {
+      conditions.push({
+        OR: [
+          {
+            companyName: {
+              contains: normalizedSearch,
+              mode: "insensitive",
             },
-            {
-              jobTitle: {
-                contains: normalizedSearch,
-                mode: "insensitive",
-              },
+          },
+          {
+            jobTitle: {
+              contains: normalizedSearch,
+              mode: "insensitive",
             },
-          ],
-        }
-      : {};
+          },
+        ],
+      });
+    }
+    if (options.status) conditions.push({ status: options.status });
+
+    const salaryCondition = buildSalaryCondition(options.salary ?? "any");
+    if (salaryCondition) conditions.push(salaryCondition);
+
+    const deadlineCondition = buildDeadlineCondition(
+      options.deadline ?? "any",
+      startOfUtcDay(options.asOf ?? new Date()),
+    );
+    if (deadlineCondition) conditions.push(deadlineCondition);
 
     const applications = await dependencies.findApplications({
-      where: { userId, ...searchCondition },
+      where: {
+        userId,
+        ...(conditions.length > 0 ? { AND: conditions } : {}),
+      },
       orderBy: [
         { deadline: { sort: "asc", nulls: "last" } },
         { updatedAt: "desc" },
