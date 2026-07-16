@@ -2,7 +2,7 @@
 
 A production-oriented full-stack job application tracker with AI-powered resume analysis, cover-letter generation, interview preparation, and application management.
 
-> **Project status:** Foundation only. The repository currently contains the application shell, placeholder routes, database design, test configuration, Docker tooling, and implementation plan. Authentication, persistence, uploads, and AI workflows are intentionally not implemented yet.
+> **Project status:** Database foundation. The repository contains the application shell, placeholder routes, initial PostgreSQL migration, Prisma runtime foundation, test configuration, Docker tooling, and implementation plan. Authentication, product data flows, uploads, and AI workflows are intentionally not implemented yet.
 
 ## Product goals
 
@@ -48,7 +48,8 @@ Protected routing is planned for the authentication milestone; dashboard routes 
 ```text
 .
 ├── prisma/
-│   └── schema.prisma          # Reviewed data model; no migration yet
+│   ├── migrations/            # Versioned PostgreSQL migrations
+│   └── schema.prisma          # Reviewed Prisma data model
 ├── src/
 │   ├── app/                   # App Router pages, layouts, and route groups
 │   ├── components/            # Shared layout and UI components
@@ -111,9 +112,9 @@ Feature folders are intentionally empty boundaries at this stage. Code should be
    npm run db:generate
    ```
 
-   Client generation does not require a running database. Prisma migration and Studio commands do require `DATABASE_URL`.
+   Client generation does not require a running database. Prisma migration, Studio, and application database access require a valid PostgreSQL `DATABASE_URL`.
 
-   The schema is defined, but the initial migration is deliberately deferred until the data model is reviewed. When approved, create it with `npm run db:migrate -- --name init`.
+   Apply the committed migrations in local development with `npm run db:migrate`. Production and CI deployments must use `npm run db:migrate:deploy`, which applies committed migrations without creating new ones.
 
 6. Start the development server:
 
@@ -125,34 +126,37 @@ Feature folders are intentionally empty boundaries at this stage. Code should be
 
 ## Environment variables
 
-| Variable              | Required           | Purpose                                   |
-| --------------------- | ------------------ | ----------------------------------------- |
-| `DATABASE_URL`        | For database work  | PostgreSQL connection string; server only |
-| `NEXTAUTH_URL`        | For authentication | Canonical authentication callback URL     |
-| `NEXTAUTH_SECRET`     | For authentication | Strong random session-signing secret      |
-| `OPENAI_API_KEY`      | For AI features    | Server-only OpenAI credential             |
-| `NEXT_PUBLIC_APP_URL` | Yes                | Public canonical application URL          |
-| `RESUME_STORAGE_DIR`  | For local uploads  | Development-only resume storage directory |
+| Variable              | Required           | Purpose                                                |
+| --------------------- | ------------------ | ------------------------------------------------------ |
+| `DATABASE_URL`        | Database runtime   | PostgreSQL connection string; required and server only |
+| `NEXTAUTH_URL`        | For authentication | Canonical authentication callback URL                  |
+| `NEXTAUTH_SECRET`     | For authentication | Strong random session-signing secret                   |
+| `OPENAI_API_KEY`      | For AI features    | Server-only OpenAI credential                          |
+| `NEXT_PUBLIC_APP_URL` | Yes                | Public canonical application URL                       |
+| `RESUME_STORAGE_DIR`  | For local uploads  | Development-only resume storage directory              |
 
 Never commit `.env`, API keys, database credentials, resume content, or generated career documents. Variables prefixed with `NEXT_PUBLIC_` are exposed to the browser and must not contain secrets.
 
+`DATABASE_URL` is validated before Prisma tooling or the runtime client starts. It must use the `postgresql://` or `postgres://` protocol. In production, use a dedicated least-privilege application role, require TLS according to the database provider's instructions, and inject the value through the deployment platform's secret manager.
+
 ## Development commands
 
-| Command                | Purpose                                 |
-| ---------------------- | --------------------------------------- |
-| `npm run dev`          | Start the Next.js development server    |
-| `npm run build`        | Create a production build               |
-| `npm run lint`         | Run ESLint with zero warnings allowed   |
-| `npm run typecheck`    | Run strict TypeScript checking          |
-| `npm run format`       | Format supported files                  |
-| `npm run format:check` | Check formatting without changing files |
-| `npm test`             | Run unit and component tests once       |
-| `npm run test:watch`   | Run Vitest in watch mode                |
-| `npm run test:e2e`     | Run Playwright tests                    |
-| `npm run db:generate`  | Generate the Prisma client              |
-| `npm run db:migrate`   | Create/apply a development migration    |
-| `npm run db:studio`    | Open Prisma Studio                      |
-| `npm run check`        | Run lint, typecheck, and unit tests     |
+| Command                     | Purpose                                     |
+| --------------------------- | ------------------------------------------- |
+| `npm run dev`               | Start the Next.js development server        |
+| `npm run build`             | Create a production build                   |
+| `npm run lint`              | Run ESLint with zero warnings allowed       |
+| `npm run typecheck`         | Run strict TypeScript checking              |
+| `npm run format`            | Format supported files                      |
+| `npm run format:check`      | Check formatting without changing files     |
+| `npm test`                  | Run unit and component tests once           |
+| `npm run test:watch`        | Run Vitest in watch mode                    |
+| `npm run test:e2e`          | Run Playwright tests                        |
+| `npm run db:generate`       | Generate the Prisma client                  |
+| `npm run db:migrate`        | Create/apply a development migration        |
+| `npm run db:migrate:deploy` | Apply committed migrations in production/CI |
+| `npm run db:studio`         | Open Prisma Studio                          |
+| `npm run check`             | Run lint, typecheck, and unit tests         |
 
 Install the Playwright browser once before the first end-to-end run:
 
@@ -175,6 +179,8 @@ docker build -t ai-career-tracker .
 ```
 
 The image uses Next.js standalone output and runs as a non-root user. Production secrets must be injected at runtime, never baked into the image.
+
+The Prisma client uses the PostgreSQL driver adapter and is cached across development reloads to avoid exhausting the connection pool. The `checkDatabaseHealth` server utility performs only `SELECT 1` and returns a safe status plus latency; it does not expose driver errors or connection details.
 
 ## Data model summary
 
