@@ -72,6 +72,19 @@ describe("ApplicationList", () => {
     ).toHaveAttribute("href", "/applications/new");
   });
 
+  it("renders a search-specific empty state without suggesting new data", () => {
+    render(<ApplicationList applications={[]} searchTerm="Acme" />);
+
+    expect(
+      screen.getByRole("heading", { name: "No applications found" }),
+    ).toBeVisible();
+    expect(screen.getByText(/No applications match “Acme”/)).toBeVisible();
+    expect(screen.getByRole("link", { name: "Clear search" })).toHaveAttribute(
+      "href",
+      "/applications",
+    );
+  });
+
   it("renders safe error and non-focusing loading states", () => {
     const { rerender } = render(
       <ApplicationListError message="We could not load your applications. Please try again." />,

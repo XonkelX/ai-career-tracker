@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   GENERIC_APPLICATION_LIST_ERROR,
   listJobApplications,
+  normalizeApplicationSearch,
 } from "./list-job-applications";
 
 const record = {
@@ -25,7 +26,7 @@ describe("listJobApplications", () => {
   it("builds a user-scoped null-last query with the required ordering", async () => {
     const findApplications = vi.fn().mockResolvedValue([record]);
 
-    await listJobApplications("user_123", { findApplications });
+    await listJobApplications("user_123", "", { findApplications });
 
     expect(findApplications).toHaveBeenCalledWith({
       where: { userId: "user_123" },
@@ -36,8 +37,45 @@ describe("listJobApplications", () => {
     });
   });
 
+  it("normalizes whitespace and builds a case-insensitive company-or-title search", async () => {
+    const findApplications = vi.fn().mockResolvedValue([]);
+
+    await listJobApplications("user_123", "  Acme   Labs  ", {
+      findApplications,
+    });
+
+    expect(normalizeApplicationSearch("  Acme   Labs  ")).toBe("Acme Labs");
+    expect(findApplications).toHaveBeenCalledWith({
+      where: {
+        userId: "user_123",
+        OR: [
+          {
+            companyName: { contains: "Acme Labs", mode: "insensitive" },
+          },
+          {
+            jobTitle: { contains: "Acme Labs", mode: "insensitive" },
+          },
+        ],
+      },
+      orderBy: [
+        { deadline: { sort: "asc", nulls: "last" } },
+        { updatedAt: "desc" },
+      ],
+    });
+  });
+
+  it("omits search predicates for a whitespace-only search", async () => {
+    const findApplications = vi.fn().mockResolvedValue([]);
+
+    await listJobApplications("user_123", " \t ", { findApplications });
+
+    expect(findApplications).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { userId: "user_123" } }),
+    );
+  });
+
   it("serializes BigInt and Date values before returning view data", async () => {
-    const result = await listJobApplications("user_123", {
+    const result = await listJobApplications("user_123", "", {
       findApplications: vi.fn().mockResolvedValue([record]),
     });
 
@@ -59,7 +97,7 @@ describe("listJobApplications", () => {
 
   it("returns a safe generic result for query failures", async () => {
     await expect(
-      listJobApplications("user_123", {
+      listJobApplications("user_123", "", {
         findApplications: vi
           .fn()
           .mockRejectedValue(new Error("database detail")),

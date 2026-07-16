@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
 import {
@@ -7,25 +8,50 @@ import {
   ApplicationListError,
   ApplicationListLoading,
 } from "@/features/applications/components/application-list";
-import { listJobApplications } from "@/server/applications/list-job-applications";
+import { ApplicationSearchForm } from "@/features/applications/components/application-search-form";
+import {
+  listJobApplications,
+  normalizeApplicationSearch,
+} from "@/server/applications/list-job-applications";
 import { requireAuthenticatedUser } from "@/server/auth/session";
 
 export const metadata: Metadata = {
   title: "Job applications",
 };
 
-async function ApplicationsContent() {
+async function ApplicationsContent({ search }: { search: string }) {
   const user = await requireAuthenticatedUser();
-  const result = await listJobApplications(user.id);
+  const result = await listJobApplications(user.id, search);
 
   if (!result.success) {
     return <ApplicationListError message={result.message} />;
   }
 
-  return <ApplicationList applications={result.applications} />;
+  return (
+    <ApplicationList
+      applications={result.applications}
+      key={search}
+      searchTerm={search}
+    />
+  );
 }
 
-export default function ApplicationsPage() {
+export default async function ApplicationsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ search?: string | string[] }>;
+}) {
+  const params = await searchParams;
+  const rawSearch = Array.isArray(params.search)
+    ? (params.search[0] ?? "")
+    : (params.search ?? "");
+  const search = normalizeApplicationSearch(rawSearch);
+
+  if (rawSearch !== search) {
+    const canonicalParams = new URLSearchParams({ search });
+    redirect(`/applications?${canonicalParams.toString()}`);
+  }
+
   return (
     <section aria-labelledby="page-title">
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -50,8 +76,10 @@ export default function ApplicationsPage() {
         </Link>
       </div>
 
-      <Suspense fallback={<ApplicationListLoading />}>
-        <ApplicationsContent />
+      <ApplicationSearchForm searchTerm={search} />
+
+      <Suspense fallback={<ApplicationListLoading />} key={search}>
+        <ApplicationsContent search={search} />
       </Suspense>
     </section>
   );

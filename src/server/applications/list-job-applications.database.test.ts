@@ -54,7 +54,7 @@ describe.runIf(runDatabaseTests)(
             id: `${testId}-deadline-one`,
             userId: owner.id,
             companyName: "Deadline One",
-            jobTitle: "Engineer",
+            jobTitle: "Principal Platform Engineer",
             deadline: new Date("2026-08-01T00:00:00.000Z"),
             dateApplied: new Date("2026-07-16T00:00:00.000Z"),
             salaryMinMinor: BigInt(8_500_050),
@@ -123,6 +123,52 @@ describe.runIf(runDatabaseTests)(
         success: true,
         applications: [],
       });
+    });
+
+    it("searches company and job title with normalized partial case-insensitive matching", async () => {
+      const companyResult = await listJobApplications(
+        ownerId,
+        "  DEADLINE   two  ",
+      );
+      expect(companyResult.success).toBe(true);
+      if (!companyResult.success) return;
+      expect(
+        companyResult.applications.map(({ companyName }) => companyName),
+      ).toEqual(["Deadline Two Newer", "Deadline Two Older"]);
+
+      const titleResult = await listJobApplications(ownerId, "platform eng");
+      expect(titleResult.success).toBe(true);
+      if (!titleResult.success) return;
+      expect(
+        titleResult.applications.map(({ companyName }) => companyName),
+      ).toEqual(["Deadline One"]);
+    });
+
+    it("keeps searches user-scoped and returns an empty result for no matches", async () => {
+      await expect(
+        listJobApplications(ownerId, "Private Role"),
+      ).resolves.toEqual({
+        success: true,
+        applications: [],
+      });
+      await expect(
+        listJobApplications(ownerId, "Definitely Missing"),
+      ).resolves.toEqual({ success: true, applications: [] });
+    });
+
+    it("treats an empty normalized search as the unfiltered ordered list", async () => {
+      const result = await listJobApplications(ownerId, "   ");
+      expect(result.success).toBe(true);
+      if (!result.success) return;
+
+      expect(result.applications.map(({ companyName }) => companyName)).toEqual(
+        [
+          "Deadline One",
+          "Deadline Two Newer",
+          "Deadline Two Older",
+          "No Deadline",
+        ],
+      );
     });
 
     it("serializes and formats salary and date values from PostgreSQL", async () => {

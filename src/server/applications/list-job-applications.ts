@@ -6,6 +6,21 @@ import type {
 export const GENERIC_APPLICATION_LIST_ERROR =
   "We could not load your applications. Please try again.";
 
+export function normalizeApplicationSearch(search: string): string {
+  return search.trim().replace(/\s+/g, " ");
+}
+
+interface ApplicationSearchCondition {
+  OR?: [
+    { companyName: { contains: string; mode: "insensitive" } },
+    { jobTitle: { contains: string; mode: "insensitive" } },
+  ];
+}
+
+interface ApplicationListWhere extends ApplicationSearchCondition {
+  userId: string;
+}
+
 interface JobApplicationListRecord {
   id: string;
   companyName: string;
@@ -40,7 +55,7 @@ export interface ApplicationListItem {
 
 export interface ListJobApplicationsDependencies {
   findApplications(query: {
-    where: { userId: string };
+    where: ApplicationListWhere;
     orderBy: [
       { deadline: { sort: "asc"; nulls: "last" } },
       { updatedAt: "desc" },
@@ -49,7 +64,7 @@ export interface ListJobApplicationsDependencies {
 }
 
 async function findApplications(query: {
-  where: { userId: string };
+  where: ApplicationListWhere;
   orderBy: [
     { deadline: { sort: "asc"; nulls: "last" } },
     { updatedAt: "desc" },
@@ -97,14 +112,35 @@ function serializeApplication(
 
 export async function listJobApplications(
   userId: string,
+  search = "",
   dependencies: ListJobApplicationsDependencies = defaultDependencies,
 ): Promise<
   | { success: true; applications: ApplicationListItem[] }
   | { success: false; message: string }
 > {
   try {
+    const normalizedSearch = normalizeApplicationSearch(search);
+    const searchCondition: ApplicationSearchCondition = normalizedSearch
+      ? {
+          OR: [
+            {
+              companyName: {
+                contains: normalizedSearch,
+                mode: "insensitive",
+              },
+            },
+            {
+              jobTitle: {
+                contains: normalizedSearch,
+                mode: "insensitive",
+              },
+            },
+          ],
+        }
+      : {};
+
     const applications = await dependencies.findApplications({
-      where: { userId },
+      where: { userId, ...searchCondition },
       orderBy: [
         { deadline: { sort: "asc", nulls: "last" } },
         { updatedAt: "desc" },

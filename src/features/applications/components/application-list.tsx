@@ -242,9 +242,11 @@ function MobileApplicationCards({
 export function ApplicationList({
   deleteAction,
   applications,
+  searchTerm = "",
 }: {
   deleteAction?: DeleteApplicationAction;
   applications: ApplicationListItem[];
+  searchTerm?: string;
 }) {
   const [visibleApplications, setVisibleApplications] = useState(applications);
   const [announcement, setAnnouncement] = useState<string | null>(null);
@@ -276,6 +278,8 @@ export function ApplicationList({
   ) : null;
 
   if (visibleApplications.length === 0) {
+    const hasSearch = searchTerm.length > 0;
+
     return (
       <>
         {deletionAnnouncement}
@@ -287,17 +291,18 @@ export function ApplicationList({
             className="text-primary text-lg font-semibold"
             id="empty-applications-title"
           >
-            No applications yet
+            {hasSearch ? "No applications found" : "No applications yet"}
           </h2>
           <p className="text-secondary mx-auto mt-2 max-w-md text-sm">
-            Add your first opportunity to start tracking deadlines, progress,
-            and outcomes.
+            {hasSearch
+              ? `No applications match “${searchTerm}”. Try another company or job title.`
+              : "Add your first opportunity to start tracking deadlines, progress, and outcomes."}
           </p>
           <Link
             className="bg-primary text-on-inverse mt-6 inline-flex min-h-11 items-center justify-center rounded-lg px-5 py-2.5 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-500"
-            href="/applications/new"
+            href={hasSearch ? "/applications" : "/applications/new"}
           >
-            Add your first application
+            {hasSearch ? "Clear search" : "Add your first application"}
           </Link>
         </section>
       </>
@@ -310,6 +315,7 @@ export function ApplicationList({
       <p className="text-secondary mb-4 text-sm" role="status">
         {visibleApplications.length}{" "}
         {visibleApplications.length === 1 ? "application" : "applications"}
+        {searchTerm ? ` matching “${searchTerm}”` : ""}
       </p>
       <DesktopApplicationTable
         action={deleteAction}
