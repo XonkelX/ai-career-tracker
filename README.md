@@ -2,7 +2,7 @@
 
 A production-oriented full-stack job application tracker with AI-powered resume analysis, cover-letter generation, interview preparation, and application management.
 
-> **Project status:** Registration foundation. New users can create an account through a validated, rate-limited server action with Argon2id password hashing. Auth.js database-session infrastructure and protected-route boundaries are configured, but no sign-in provider or sign-in flow exists yet; product data flows, uploads, and AI workflows remain deferred.
+> **Project status:** Registration foundation. New users can create an account through a validated, rate-limited server action with Argon2id password hashing. Auth.js encrypted JWT-session infrastructure and protected-route boundaries are configured, but no sign-in provider or sign-in flow exists yet; product data flows, uploads, and AI workflows remain deferred.
 
 ## Product goals
 
@@ -20,7 +20,7 @@ AI output must never invent skills, experience, education, or achievements. Gene
 - Next.js 16 App Router, React 19, and strict TypeScript
 - Tailwind CSS 4
 - PostgreSQL 17 and Prisma 7
-- Auth.js 5 with persistent database sessions
+- Auth.js 5 with encrypted JWT sessions
 - Vitest, Testing Library, and Playwright
 - Docker and Docker Compose
 - ESLint and Prettier
@@ -32,7 +32,7 @@ React Hook Form and the OpenAI SDK remain deferred until milestones that use the
 | Route                           | Purpose                                       | Current state        |
 | ------------------------------- | --------------------------------------------- | -------------------- |
 | `/`                             | Public landing page                           | Placeholder complete |
-| `/sign-up`                      | Account registration                          | Placeholder only     |
+| `/sign-up`                      | Account registration                          | Implemented          |
 | `/sign-in`                      | Account login                                 | Placeholder only     |
 | `/dashboard`                    | Metrics, activity, deadlines                  | Placeholder only     |
 | `/applications`                 | Application table and Kanban views            | Placeholder only     |
@@ -42,7 +42,7 @@ React Hook Form and the OpenAI SDK remain deferred until milestones that use the
 | `/ai-tools`                     | Resume, cover-letter, and interview tools     | Placeholder only     |
 | `/settings`                     | Profile, theme, privacy, and account controls | Placeholder only     |
 
-Dashboard routes now require an authenticated database session at both the request proxy and server layout boundaries. Because no provider or sign-in flow exists yet, the current sign-in page remains a non-functional placeholder.
+Dashboard routes now require an authenticated JWT session at both the request proxy and server layout boundaries. Because no provider or sign-in flow exists yet, the current sign-in page remains a non-functional placeholder.
 
 ## Repository structure
 
@@ -189,11 +189,17 @@ Registration normalizes email addresses and validates all fields on the server b
 
 The included registration limiter permits five attempts per 15-minute window for a hashed client-network identifier. It is intentionally an in-process development boundary: production deployments with multiple instances must supply a shared implementation of the `RegistrationRateLimiter` interface, backed by infrastructure such as Redis and configured to trust only the hosting platform's forwarded-IP headers. Duplicate-email and persistence errors return the same generic client message and are never logged with submitted credentials.
 
+## Session security
+
+Auth.js uses its supported JWT strategy for the planned Credentials provider. The encrypted token is stored in Auth.js's HTTP-only, same-site session cookie; secure cookies are required in production and relaxed only for local HTTP development. Sessions expire after seven days. User ID and the single `USER` role are copied into the encrypted JWT at authentication time and exposed through the typed server session.
+
+JWT sessions avoid a database lookup on every request and remove the database `Session` table. The trade-off is that an issued token cannot be centrally revoked before it expires. Token revocation, sign-out across all devices, refresh tokens, and remember-me behavior are explicitly outside the current scope.
+
 ## Data model summary
 
 The initial Prisma schema defines:
 
-- Auth-compatible `User`, `Account`, `Session`, and `VerificationToken` models, with a single `USER` role placeholder for future authorization policy.
+- Auth-compatible `User`, `Account`, and `VerificationToken` models, with a single `USER` role placeholder for future authorization policy. Auth.js sessions are encrypted JWTs and are not stored in PostgreSQL.
 - `JobApplication` with ownership, status, compensation range, dates, notes, job description, and an optional linked resume version. Compensation uses `BigInt` ISO 4217 minor units plus an explicit hourly, monthly, or annual period; values are gross unless the source says otherwise.
 - `Resume` and immutable `ResumeVersion` records with storage metadata and content hashes.
 - `AiArtifact` records containing the artifact type, model, source snapshot, structured output, and execution status.

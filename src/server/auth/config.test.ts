@@ -1,40 +1,49 @@
-import type { AdapterUser } from "next-auth/adapters";
-import type { Session } from "next-auth";
+import type { Session, User } from "next-auth";
 import { describe, expect, it } from "vitest";
 
-import { addUserToSession, authConfig } from "./config";
+import { addTokenToSession, addUserToToken, authConfig } from "./config";
 
 describe("authentication configuration", () => {
-  it("uses persistent database sessions without authentication providers", () => {
+  it("uses a finite JWT session without a database adapter", () => {
     expect(authConfig.providers).toEqual([]);
     expect(authConfig.session).toEqual({
-      strategy: "database",
-      maxAge: 2_592_000,
-      updateAge: 86_400,
+      strategy: "jwt",
+      maxAge: 604_800,
     });
+    expect(authConfig.useSecureCookies).toBe(
+      process.env.NODE_ENV === "production",
+    );
   });
 
-  it("adds the user id and placeholder role to a session", () => {
-    const user: AdapterUser = {
+  it("copies the user identifier and role into the JWT", () => {
+    const user: User = {
       id: "user_123",
       name: "Taylor",
       email: "taylor@example.com",
-      emailVerified: null,
       image: null,
       role: "USER",
     };
 
+    expect(addUserToToken({ token: {}, user })).toMatchObject({
+      userId: "user_123",
+      role: "USER",
+    });
+  });
+
+  it("exposes the JWT user identifier and role through the session", () => {
+    const session = {
+      expires: "2099-01-01T00:00:00.000Z",
+      user: {
+        name: "Taylor",
+        email: "taylor@example.com",
+        image: null,
+      } as Session["user"],
+    };
+
     expect(
-      addUserToSession({
-        session: {
-          expires: "2099-01-01T00:00:00.000Z",
-          user: {
-            name: user.name,
-            email: user.email,
-            image: user.image,
-          } as Session["user"],
-        },
-        user,
+      addTokenToSession({
+        session,
+        token: { userId: "user_123", role: "USER" },
       }),
     ).toMatchObject({
       user: { id: "user_123", role: "USER" },

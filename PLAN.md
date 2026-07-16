@@ -56,12 +56,13 @@ Within a mature feature, prefer `components/`, `actions/`, `queries/`, `schemas/
 
 ## 3. Database schema
 
-The schema is defined in `prisma/schema.prisma`; the initial migration waits for review.
+The schema is defined in `prisma/schema.prisma` and versioned through committed migrations in `prisma/migrations`. The JWT-session migration removes the obsolete database `Session` table without rewriting previously applied migration history.
 
 ### Identity
 
 - `User`: unique normalized email, optional profile data, optional password hash for credentials, timestamps.
-- `Account`, `Session`, `VerificationToken`: NextAuth-compatible provider and session records.
+- `Account` and `VerificationToken`: Auth.js-compatible records reserved for provider flows that may need them later. Credentials authentication does not create database session records.
+- Auth.js uses encrypted JWT sessions with a seven-day maximum age. The JWT carries only the user identifier, the `USER` role, and Auth.js standard claims.
 - Passwords, if credentials authentication is selected, use a memory-hard password hash and never appear in logs or application responses.
 
 ### Applications
@@ -135,8 +136,8 @@ Exit: lint, typecheck, unit tests, and production build pass; no auth or databas
 
 ### Milestone 2 — Authentication and authorization
 
-- Choose credentials, OAuth, or both; document the threat model.
-- Implement NextAuth configuration, sign-up/sign-in/sign-out, session rotation, and protected layouts.
+- Use Auth.js Credentials with encrypted JWT sessions; document the inability to centrally revoke an issued token before expiry.
+- Implement Auth.js configuration, sign-up/sign-in/sign-out, finite session lifetime, and protected layouts.
 - Add rate limits for registration and login.
 - Add E2E tests for successful and failed authentication plus redirect safety.
 
@@ -181,23 +182,23 @@ Exit: lint, typecheck, unit tests, and production build pass; no auth or databas
 
 ## 6. Security and privacy risks
 
-| Risk                             | Planned control                                                                                                    |
-| -------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| Cross-user data access (IDOR)    | Include `userId` in every read/write predicate; test with two users; never trust route IDs alone                   |
-| Session theft or fixation        | Secure, HTTP-only, same-site cookies; rotated sessions; re-authentication for destructive actions                  |
-| Credential attacks               | Strong hashes, generic errors, rate limits, breached-password policy, optional verified OAuth                      |
-| OAuth provider token exposure    | Minimize scopes and retention; encrypt stored refresh/access tokens or avoid persistence when the provider permits |
-| Resume leakage                   | Private storage, short-lived signed URLs, encryption, strict ownership checks, no public buckets                   |
-| Malicious uploads                | MIME sniffing, extension allowlist, size limits, quarantine/scanning, random storage keys                          |
-| Prompt injection in resumes/jobs | Treat documents as untrusted data, isolate instructions, use structured outputs, validate claims against sources   |
-| AI fabrication                   | Explicit grounding policy, source snapshots, unsupported-claim detection, user review before use                   |
-| Secret exposure                  | Server-only clients, environment injection, secret scanning, log redaction, no `NEXT_PUBLIC_` secrets              |
-| Sensitive logs/telemetry         | Structured allowlisted events; exclude resume text, job notes, generated drafts, tokens, and credentials           |
-| Excessive retention              | User-visible deletion/export, documented retention periods, deletion propagation to storage and AI artifacts       |
-| CSRF/open redirects              | Same-site cookies, origin checks for mutations, allowlisted callback paths                                         |
-| XSS from user/AI content         | Render as text by default; sanitize any approved rich text; strict Content Security Policy                         |
-| Cost abuse                       | Per-user quotas, request-size caps, model allowlist, timeouts, rate limits, usage monitoring                       |
-| Supply-chain vulnerabilities     | Lockfile, automated dependency review, minimal images, non-root runtime, scheduled patching                        |
+| Risk                             | Planned control                                                                                                     |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| Cross-user data access (IDOR)    | Include `userId` in every read/write predicate; test with two users; never trust route IDs alone                    |
+| Session theft or fixation        | Encrypted JWT in a secure, HTTP-only, same-site cookie; seven-day expiry; re-authentication for destructive actions |
+| Credential attacks               | Strong hashes, generic errors, rate limits, breached-password policy, optional verified OAuth                       |
+| OAuth provider token exposure    | Minimize scopes and retention; encrypt stored refresh/access tokens or avoid persistence when the provider permits  |
+| Resume leakage                   | Private storage, short-lived signed URLs, encryption, strict ownership checks, no public buckets                    |
+| Malicious uploads                | MIME sniffing, extension allowlist, size limits, quarantine/scanning, random storage keys                           |
+| Prompt injection in resumes/jobs | Treat documents as untrusted data, isolate instructions, use structured outputs, validate claims against sources    |
+| AI fabrication                   | Explicit grounding policy, source snapshots, unsupported-claim detection, user review before use                    |
+| Secret exposure                  | Server-only clients, environment injection, secret scanning, log redaction, no `NEXT_PUBLIC_` secrets               |
+| Sensitive logs/telemetry         | Structured allowlisted events; exclude resume text, job notes, generated drafts, tokens, and credentials            |
+| Excessive retention              | User-visible deletion/export, documented retention periods, deletion propagation to storage and AI artifacts        |
+| CSRF/open redirects              | Same-site cookies, origin checks for mutations, allowlisted callback paths                                          |
+| XSS from user/AI content         | Render as text by default; sanitize any approved rich text; strict Content Security Policy                          |
+| Cost abuse                       | Per-user quotas, request-size caps, model allowlist, timeouts, rate limits, usage monitoring                        |
+| Supply-chain vulnerabilities     | Lockfile, automated dependency review, minimal images, non-root runtime, scheduled patching                         |
 
 Privacy decisions required before AI implementation:
 
@@ -218,7 +219,7 @@ CI should run formatting checks, lint, typecheck, unit/component tests, producti
 
 ## 8. Open decisions
 
-- Credentials, OAuth, or both for the first authentication release.
+- Whether a future release should add OAuth alongside Credentials.
 - Managed PostgreSQL and deployment platform.
 - Private object-storage provider and malware-scanning service.
 - Resume text extraction method and supported file types.
