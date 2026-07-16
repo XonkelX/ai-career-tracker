@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { BrandLockup } from "./brand-mark";
+import { BrandLockup } from "@/components/ui/brand-mark";
 
 const footerLinks = [
   { label: "Features", href: "#features" },

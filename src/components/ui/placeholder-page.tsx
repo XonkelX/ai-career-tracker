@@ -17,31 +17,27 @@ export function PlaceholderPage({
     <section aria-labelledby="page-title">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="text-sm font-semibold text-cyan-700 dark:text-cyan-300">
-            Placeholder route
-          </p>
+          <p className="text-brand text-sm font-semibold">Placeholder route</p>
           <h1
             className="mt-1 text-3xl font-semibold tracking-tight"
             id="page-title"
           >
             {title}
           </h1>
-          <p className="mt-3 max-w-2xl text-slate-600 dark:text-slate-300">
-            {description}
-          </p>
+          <p className="text-secondary mt-3 max-w-2xl">{description}</p>
         </div>
         {action ? (
           <Link
-            className="rounded-lg bg-slate-950 px-4 py-2 text-sm font-semibold text-white dark:bg-cyan-300 dark:text-slate-950"
+            className="bg-primary text-on-inverse min-h-11 rounded-lg px-4 py-3 text-sm font-semibold"
             href={action.href}
           >
             {action.label}
           </Link>
         ) : null}
       </div>
-      <div className="mt-8 rounded-xl border border-dashed border-slate-300 bg-white p-8 dark:border-slate-700 dark:bg-slate-900">
+      <div className="border-border bg-surface mt-8 rounded-xl border border-dashed p-8">
         {children ?? (
-          <p className="text-sm text-slate-500 dark:text-slate-400">
+          <p className="text-muted text-sm">
             Feature implementation is intentionally deferred to a later
             milestone.
           </p>

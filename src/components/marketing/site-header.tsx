@@ -2,8 +2,8 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 
 import { isTheme } from "@/lib/theme";
+import { BrandLockup } from "@/components/ui/brand-mark";
 
-import { BrandLockup } from "./brand-mark";
 import { ThemeToggle } from "./theme-toggle";
 
 const navigation = [
