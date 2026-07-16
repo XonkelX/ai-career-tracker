@@ -5,7 +5,13 @@ export const metadata: Metadata = {
   title: "Sign in",
 };
 
-export default function SignInPage() {
+export default async function SignInPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ registered?: string }>;
+}) {
+  const registrationSucceeded = (await searchParams).registered === "1";
+
   return (
     <section
       className="rounded-xl border border-slate-800 bg-slate-900 p-8"
@@ -14,9 +20,18 @@ export default function SignInPage() {
       <h1 className="text-2xl font-semibold" id="sign-in-title">
         Sign in
       </h1>
+      {registrationSucceeded ? (
+        <p
+          className="mt-4 rounded-lg border border-emerald-400/40 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-100"
+          role="status"
+        >
+          Your account was created successfully. Sign-in functionality is not
+          available yet.
+        </p>
+      ) : null}
       <p className="mt-3 text-slate-300">
-        Authentication is planned but intentionally not implemented in this
-        foundation milestone.
+        Sign-in functionality is intentionally deferred to the next
+        authentication milestone.
       </p>
       <p className="mt-6 text-sm text-slate-400">
         Need an account?{" "}

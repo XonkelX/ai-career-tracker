@@ -2,7 +2,7 @@
 
 A production-oriented full-stack job application tracker with AI-powered resume analysis, cover-letter generation, interview preparation, and application management.
 
-> **Project status:** Authentication infrastructure. The repository contains the application shell, PostgreSQL and Prisma foundation, Auth.js database-session configuration, protected-route boundaries, test configuration, and Docker tooling. No authentication provider or user-facing sign-in flow is implemented yet; product data flows, uploads, and AI workflows also remain deferred.
+> **Project status:** Registration foundation. New users can create an account through a validated, rate-limited server action with Argon2id password hashing. Auth.js database-session infrastructure and protected-route boundaries are configured, but no sign-in provider or sign-in flow exists yet; product data flows, uploads, and AI workflows remain deferred.
 
 ## Product goals
 
@@ -182,6 +182,12 @@ docker build -t ai-career-tracker .
 The image uses Next.js standalone output and runs as a non-root user. Production secrets must be injected at runtime, never baked into the image.
 
 The Prisma client uses the PostgreSQL driver adapter and is cached across development reloads to avoid exhausting the connection pool. The `checkDatabaseHealth` server utility performs only `SELECT 1` and returns a safe status plus latency; it does not expose driver errors or connection details.
+
+## Registration security
+
+Registration normalizes email addresses and validates all fields on the server before performing password hashing or database work. Passwords are hashed with Argon2id using [OWASP's minimum recommended configuration](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html) of 19 MiB memory, two iterations, and one degree of parallelism. Prisma creates users with an explicit `{ id: true }` selection, so `passwordHash` is never returned from the mutation.
+
+The included registration limiter permits five attempts per 15-minute window for a hashed client-network identifier. It is intentionally an in-process development boundary: production deployments with multiple instances must supply a shared implementation of the `RegistrationRateLimiter` interface, backed by infrastructure such as Redis and configured to trust only the hosting platform's forwarded-IP headers. Duplicate-email and persistence errors return the same generic client message and are never logged with submitted credentials.
 
 ## Data model summary
 
