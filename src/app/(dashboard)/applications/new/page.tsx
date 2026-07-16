@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { createJobApplicationAction } from "@/app/(dashboard)/applications/new/actions";
 import { ApplicationForm } from "@/features/applications/components/application-form";
 
 export const metadata: Metadata = {
@@ -33,7 +34,7 @@ export default function NewApplicationPage() {
       </div>
 
       <div className="border-border bg-surface mt-8 rounded-xl border p-5 sm:p-8">
-        <ApplicationForm today={today} />
+        <ApplicationForm action={createJobApplicationAction} today={today} />
       </div>
     </section>
   );

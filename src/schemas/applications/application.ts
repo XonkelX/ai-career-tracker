@@ -29,7 +29,7 @@ function normalizeUrl(value: string): string | undefined {
   }
 }
 
-function getCurrencyMinorDigits(currency: string): number | undefined {
+export function getCurrencyMinorDigits(currency: string): number | undefined {
   try {
     const options = new Intl.NumberFormat("en", {
       style: "currency",
@@ -126,7 +126,10 @@ const baseApplicationSchema = z.object({
   status: z.enum(APPLICATION_STATUSES).default("SAVED"),
 });
 
-export function createApplicationSchema(today = new Date()) {
+export function createApplicationSchema(
+  today = new Date(),
+  options: { allowedPastDeadline?: string } = {},
+) {
   const todayValue = today.toISOString().slice(0, 10);
 
   return baseApplicationSchema
@@ -201,7 +204,11 @@ export function createApplicationSchema(today = new Date()) {
         }
       }
 
-      if (data.deadline && data.deadline < todayValue) {
+      if (
+        data.deadline &&
+        data.deadline < todayValue &&
+        data.deadline !== options.allowedPastDeadline
+      ) {
         context.addIssue({
           code: "custom",
           path: ["deadline"],

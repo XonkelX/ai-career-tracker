@@ -3,8 +3,10 @@
 import Link from "next/link";
 import { useActionState, useEffect, useRef } from "react";
 
-import { createJobApplicationAction } from "@/app/(dashboard)/applications/new/actions";
-import { INITIAL_APPLICATION_STATE } from "@/features/applications/application-state";
+import {
+  INITIAL_APPLICATION_STATE,
+  type ApplicationActionState,
+} from "@/features/applications/application-state";
 import {
   APPLICATION_STATUSES,
   APPLICATION_STATUS_LABELS,
@@ -36,11 +38,32 @@ const salaryPeriodLabels = {
   ANNUAL: "Annual",
 } as const;
 
-export function ApplicationForm({ today }: { today: string }) {
+export interface ApplicationFormProps {
+  action: (
+    previousState: ApplicationActionState,
+    formData: FormData,
+  ) => Promise<ApplicationActionState>;
+  initialValues?: ApplicationActionState["values"];
+  pendingLabel?: string;
+  statusReadOnly?: boolean;
+  submitLabel?: string;
+  today: string;
+}
+
+export function ApplicationForm({
+  action,
+  initialValues,
+  pendingLabel = "Saving application…",
+  statusReadOnly = false,
+  submitLabel = "Save application",
+  today,
+}: ApplicationFormProps) {
   const errorSummaryRef = useRef<HTMLDivElement>(null);
   const [state, formAction, isPending] = useActionState(
-    createJobApplicationAction,
-    INITIAL_APPLICATION_STATE,
+    action,
+    initialValues
+      ? { ...INITIAL_APPLICATION_STATE, values: initialValues }
+      : INITIAL_APPLICATION_STATE,
   );
 
   useEffect(() => {
@@ -288,9 +311,9 @@ export function ApplicationForm({ today }: { today: string }) {
               aria-invalid={Boolean(state.fieldErrors?.status)}
               className={inputStyles}
               defaultValue={state.values?.status ?? "SAVED"}
-              disabled={isPending}
+              disabled={isPending || statusReadOnly}
               id="status"
-              name="status"
+              name={statusReadOnly ? undefined : "status"}
             >
               {APPLICATION_STATUSES.map((status) => (
                 <option key={status} value={status}>
@@ -298,6 +321,13 @@ export function ApplicationForm({ today }: { today: string }) {
                 </option>
               ))}
             </select>
+            {statusReadOnly ? (
+              <input
+                name="status"
+                type="hidden"
+                value={state.values?.status ?? "SAVED"}
+              />
+            ) : null}
             <FieldError errors={state.fieldErrors?.status} id="status-error" />
           </div>
 
@@ -354,7 +384,7 @@ export function ApplicationForm({ today }: { today: string }) {
           disabled={isPending}
           type="submit"
         >
-          {isPending ? "Saving application…" : "Save application"}
+          {isPending ? pendingLabel : submitLabel}
         </button>
       </div>
 

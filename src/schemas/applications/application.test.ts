@@ -78,6 +78,20 @@ describe("applicationSchema", () => {
     }
   });
 
+  it("allows an unchanged historical deadline while editing", () => {
+    const editSchema = createApplicationSchema(
+      new Date("2026-07-16T12:00:00.000Z"),
+      { allowedPastDeadline: "2026-07-10" },
+    );
+
+    expect(
+      editSchema.safeParse({ ...validInput, deadline: "2026-07-10" }).success,
+    ).toBe(true);
+    expect(
+      editSchema.safeParse({ ...validInput, deadline: "2026-07-11" }).success,
+    ).toBe(false);
+  });
+
   it("rejects a maximum salary below the minimum", () => {
     const result = schema.safeParse({
       ...validInput,

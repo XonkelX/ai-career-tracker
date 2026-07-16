@@ -6,7 +6,6 @@ import {
   formatApplicationDate,
   formatSalaryRange,
 } from "@/features/applications/application-formatters";
-import { prisma } from "@/server/db/client";
 
 import { listJobApplications } from "./list-job-applications";
 
@@ -17,11 +16,13 @@ const otherEmail = `list-other-${testId}@example.test`;
 const emptyEmail = `list-empty-${testId}@example.test`;
 let ownerId = "";
 let emptyUserId = "";
+let prisma: typeof import("@/server/db/client").prisma;
 
 describe.runIf(runDatabaseTests)(
   "listJobApplications database isolation",
   () => {
     beforeAll(async () => {
+      ({ prisma } = await import("@/server/db/client"));
       const [owner, otherUser, emptyUser] = await Promise.all([
         prisma.user.create({
           data: { email: ownerEmail, name: "List Owner" },
