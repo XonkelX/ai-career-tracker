@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
   APPLICATION_STATUS_LABELS,
@@ -10,6 +13,10 @@ import {
   formatApplicationDate,
   formatSalaryRange,
 } from "../application-formatters";
+import {
+  DeleteApplicationControl,
+  type DeleteApplicationAction,
+} from "./delete-application-control";
 
 const statusStyles: Record<ApplicationStatus, string> = {
   SAVED:
@@ -63,26 +70,43 @@ function ApplicationDates({
   );
 }
 
-function ApplicationLink({
+function ApplicationActions({
+  action,
   application,
+  onDeleted,
 }: {
+  action?: DeleteApplicationAction;
   application: ApplicationListItem;
+  onDeleted: (applicationId: string, accessibleName: string) => void;
 }) {
   return (
-    <Link
-      aria-label={`View ${application.jobTitle} at ${application.companyName}`}
-      className="text-brand inline-flex min-h-11 items-center text-sm font-semibold hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-500"
-      href={`/applications/${application.id}`}
-    >
-      View details
-    </Link>
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+      <Link
+        aria-label={`View ${application.jobTitle} at ${application.companyName}`}
+        className="text-brand inline-flex min-h-11 items-center text-sm font-semibold hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-500"
+        href={`/applications/${application.id}`}
+      >
+        View details
+      </Link>
+      <DeleteApplicationControl
+        action={action}
+        applicationId={application.id}
+        companyName={application.companyName}
+        jobTitle={application.jobTitle}
+        onDeleted={onDeleted}
+      />
+    </div>
   );
 }
 
 function DesktopApplicationTable({
+  action,
   applications,
+  onDeleted,
 }: {
+  action?: DeleteApplicationAction;
   applications: ApplicationListItem[];
+  onDeleted: (applicationId: string, accessibleName: string) => void;
 }) {
   return (
     <div className="border-border bg-surface hidden rounded-xl border lg:block">
@@ -103,7 +127,7 @@ function DesktopApplicationTable({
               Dates
             </th>
             <th className="w-[10%] px-4 py-3 font-semibold" scope="col">
-              Action
+              Actions
             </th>
           </tr>
         </thead>
@@ -136,7 +160,11 @@ function DesktopApplicationTable({
                   <ApplicationDates application={application} />
                 </td>
                 <td className="px-4 py-3">
-                  <ApplicationLink application={application} />
+                  <ApplicationActions
+                    action={action}
+                    application={application}
+                    onDeleted={onDeleted}
+                  />
                 </td>
               </tr>
             );
@@ -148,9 +176,13 @@ function DesktopApplicationTable({
 }
 
 function MobileApplicationCards({
+  action,
   applications,
+  onDeleted,
 }: {
+  action?: DeleteApplicationAction;
   applications: ApplicationListItem[];
+  onDeleted: (applicationId: string, accessibleName: string) => void;
 }) {
   return (
     <ul
@@ -194,7 +226,11 @@ function MobileApplicationCards({
               <ApplicationDates application={application} />
             </div>
             <div className="mt-3">
-              <ApplicationLink application={application} />
+              <ApplicationActions
+                action={action}
+                application={application}
+                onDeleted={onDeleted}
+              />
             </div>
           </li>
         );
@@ -204,44 +240,87 @@ function MobileApplicationCards({
 }
 
 export function ApplicationList({
+  deleteAction,
   applications,
 }: {
+  deleteAction?: DeleteApplicationAction;
   applications: ApplicationListItem[];
 }) {
-  if (applications.length === 0) {
+  const [visibleApplications, setVisibleApplications] = useState(applications);
+  const [announcement, setAnnouncement] = useState<string | null>(null);
+  const announcementRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (announcement) announcementRef.current?.focus();
+  }, [announcement]);
+
+  const handleDeleted = useCallback(
+    (applicationId: string, accessibleName: string) => {
+      setVisibleApplications((current) =>
+        current.filter((application) => application.id !== applicationId),
+      );
+      setAnnouncement(`${accessibleName} was deleted.`);
+    },
+    [],
+  );
+
+  const deletionAnnouncement = announcement ? (
+    <div
+      className="mt-6 rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 dark:text-emerald-200"
+      ref={announcementRef}
+      role="status"
+      tabIndex={-1}
+    >
+      {announcement}
+    </div>
+  ) : null;
+
+  if (visibleApplications.length === 0) {
     return (
-      <section
-        className="border-border bg-surface mt-8 rounded-xl border border-dashed px-6 py-12 text-center"
-        aria-labelledby="empty-applications-title"
-      >
-        <h2
-          className="text-primary text-lg font-semibold"
-          id="empty-applications-title"
+      <>
+        {deletionAnnouncement}
+        <section
+          className="border-border bg-surface mt-8 rounded-xl border border-dashed px-6 py-12 text-center"
+          aria-labelledby="empty-applications-title"
         >
-          No applications yet
-        </h2>
-        <p className="text-secondary mx-auto mt-2 max-w-md text-sm">
-          Add your first opportunity to start tracking deadlines, progress, and
-          outcomes.
-        </p>
-        <Link
-          className="bg-primary text-on-inverse mt-6 inline-flex min-h-11 items-center justify-center rounded-lg px-5 py-2.5 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-500"
-          href="/applications/new"
-        >
-          Add your first application
-        </Link>
-      </section>
+          <h2
+            className="text-primary text-lg font-semibold"
+            id="empty-applications-title"
+          >
+            No applications yet
+          </h2>
+          <p className="text-secondary mx-auto mt-2 max-w-md text-sm">
+            Add your first opportunity to start tracking deadlines, progress,
+            and outcomes.
+          </p>
+          <Link
+            className="bg-primary text-on-inverse mt-6 inline-flex min-h-11 items-center justify-center rounded-lg px-5 py-2.5 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-500"
+            href="/applications/new"
+          >
+            Add your first application
+          </Link>
+        </section>
+      </>
     );
   }
 
   return (
     <div className="mt-8">
+      {deletionAnnouncement}
       <p className="text-secondary mb-4 text-sm" role="status">
-        {applications.length}{" "}
-        {applications.length === 1 ? "application" : "applications"}
+        {visibleApplications.length}{" "}
+        {visibleApplications.length === 1 ? "application" : "applications"}
       </p>
-      <DesktopApplicationTable applications={applications} />
-      <MobileApplicationCards applications={applications} />
+      <DesktopApplicationTable
+        action={deleteAction}
+        applications={visibleApplications}
+        onDeleted={handleDeleted}
+      />
+      <MobileApplicationCards
+        action={deleteAction}
+        applications={visibleApplications}
+        onDeleted={handleDeleted}
+      />
     </div>
   );
 }
