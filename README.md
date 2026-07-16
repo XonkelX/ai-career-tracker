@@ -20,12 +20,11 @@ AI output must never invent skills, experience, education, or achievements. Gene
 - Next.js 16 App Router, React 19, and strict TypeScript
 - Tailwind CSS 4
 - PostgreSQL 17 and Prisma 7
-- NextAuth (planned authentication implementation)
-- Zod and React Hook Form
-- OpenAI API
 - Vitest, Testing Library, and Playwright
 - Docker and Docker Compose
 - ESLint and Prettier
+
+Planned milestone dependencies include NextAuth, Zod, React Hook Form, and the OpenAI SDK. They are intentionally not installed until the milestone that uses them, which keeps the foundation's production dependency and audit surface small.
 
 ## Current routes
 
@@ -111,6 +110,8 @@ Feature folders are intentionally empty boundaries at this stage. Code should be
    ```bash
    npm run db:generate
    ```
+
+   Client generation does not require a running database. Prisma migration and Studio commands do require `DATABASE_URL`.
 
    The schema is defined, but the initial migration is deliberately deferred until the data model is reviewed. When approved, create it with `npm run db:migrate -- --name init`.
 

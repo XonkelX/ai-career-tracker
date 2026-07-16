@@ -1,17 +1,17 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-const navigation = [
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/applications", label: "Applications" },
-  { href: "/resumes", label: "Resumes" },
-  { href: "/ai-tools", label: "AI tools" },
-  { href: "/settings", label: "Settings" },
-];
+import { AppNav } from "./app-nav";
 
 export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-950 dark:bg-slate-950 dark:text-slate-100">
+      <a
+        className="sr-only z-50 rounded-md bg-white px-4 py-2 text-slate-950 focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:outline-2 focus:outline-offset-2 focus:outline-cyan-600"
+        href="#main-content"
+      >
+        Skip to main content
+      </a>
       <header className="border-b border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
           <Link className="font-semibold tracking-tight" href="/dashboard">
@@ -24,22 +24,11 @@ export function AppShell({ children }: { children: ReactNode }) {
       </header>
       <div className="mx-auto grid max-w-7xl md:grid-cols-[220px_1fr]">
         <aside className="border-b border-slate-200 p-4 md:min-h-[calc(100vh-65px)] md:border-r md:border-b-0 dark:border-slate-800">
-          <nav aria-label="Dashboard navigation">
-            <ul className="flex gap-2 overflow-x-auto md:flex-col">
-              {navigation.map((item) => (
-                <li key={item.href}>
-                  <Link
-                    className="block rounded-lg px-3 py-2 text-sm font-medium whitespace-nowrap text-slate-600 hover:bg-slate-100 hover:text-slate-950 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
-                    href={item.href}
-                  >
-                    {item.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
+          <AppNav />
         </aside>
-        <main className="min-w-0 p-6 md:p-10">{children}</main>
+        <main className="min-w-0 p-6 md:p-10" id="main-content" tabIndex={-1}>
+          {children}
+        </main>
       </div>
     </div>
   );

@@ -1,4 +1,10 @@
+import type { Metadata } from "next";
+
 import { PlaceholderPage } from "@/components/ui/placeholder-page";
+
+export const metadata: Metadata = {
+  title: "Add a job application",
+};
 
 export default function NewApplicationPage() {
   return (

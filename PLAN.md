@@ -179,22 +179,23 @@ Exit: lint, typecheck, unit tests, and production build pass; no auth or databas
 
 ## 6. Security and privacy risks
 
-| Risk                             | Planned control                                                                                                  |
-| -------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| Cross-user data access (IDOR)    | Include `userId` in every read/write predicate; test with two users; never trust route IDs alone                 |
-| Session theft or fixation        | Secure, HTTP-only, same-site cookies; rotated sessions; re-authentication for destructive actions                |
-| Credential attacks               | Strong hashes, generic errors, rate limits, breached-password policy, optional verified OAuth                    |
-| Resume leakage                   | Private storage, short-lived signed URLs, encryption, strict ownership checks, no public buckets                 |
-| Malicious uploads                | MIME sniffing, extension allowlist, size limits, quarantine/scanning, random storage keys                        |
-| Prompt injection in resumes/jobs | Treat documents as untrusted data, isolate instructions, use structured outputs, validate claims against sources |
-| AI fabrication                   | Explicit grounding policy, source snapshots, unsupported-claim detection, user review before use                 |
-| Secret exposure                  | Server-only clients, environment injection, secret scanning, log redaction, no `NEXT_PUBLIC_` secrets            |
-| Sensitive logs/telemetry         | Structured allowlisted events; exclude resume text, job notes, generated drafts, tokens, and credentials         |
-| Excessive retention              | User-visible deletion/export, documented retention periods, deletion propagation to storage and AI artifacts     |
-| CSRF/open redirects              | Same-site cookies, origin checks for mutations, allowlisted callback paths                                       |
-| XSS from user/AI content         | Render as text by default; sanitize any approved rich text; strict Content Security Policy                       |
-| Cost abuse                       | Per-user quotas, request-size caps, model allowlist, timeouts, rate limits, usage monitoring                     |
-| Supply-chain vulnerabilities     | Lockfile, automated dependency review, minimal images, non-root runtime, scheduled patching                      |
+| Risk                             | Planned control                                                                                                    |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Cross-user data access (IDOR)    | Include `userId` in every read/write predicate; test with two users; never trust route IDs alone                   |
+| Session theft or fixation        | Secure, HTTP-only, same-site cookies; rotated sessions; re-authentication for destructive actions                  |
+| Credential attacks               | Strong hashes, generic errors, rate limits, breached-password policy, optional verified OAuth                      |
+| OAuth provider token exposure    | Minimize scopes and retention; encrypt stored refresh/access tokens or avoid persistence when the provider permits |
+| Resume leakage                   | Private storage, short-lived signed URLs, encryption, strict ownership checks, no public buckets                   |
+| Malicious uploads                | MIME sniffing, extension allowlist, size limits, quarantine/scanning, random storage keys                          |
+| Prompt injection in resumes/jobs | Treat documents as untrusted data, isolate instructions, use structured outputs, validate claims against sources   |
+| AI fabrication                   | Explicit grounding policy, source snapshots, unsupported-claim detection, user review before use                   |
+| Secret exposure                  | Server-only clients, environment injection, secret scanning, log redaction, no `NEXT_PUBLIC_` secrets              |
+| Sensitive logs/telemetry         | Structured allowlisted events; exclude resume text, job notes, generated drafts, tokens, and credentials           |
+| Excessive retention              | User-visible deletion/export, documented retention periods, deletion propagation to storage and AI artifacts       |
+| CSRF/open redirects              | Same-site cookies, origin checks for mutations, allowlisted callback paths                                         |
+| XSS from user/AI content         | Render as text by default; sanitize any approved rich text; strict Content Security Policy                         |
+| Cost abuse                       | Per-user quotas, request-size caps, model allowlist, timeouts, rate limits, usage monitoring                       |
+| Supply-chain vulnerabilities     | Lockfile, automated dependency review, minimal images, non-root runtime, scheduled patching                        |
 
 Privacy decisions required before AI implementation:
 

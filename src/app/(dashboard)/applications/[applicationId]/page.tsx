@@ -1,4 +1,10 @@
+import type { Metadata } from "next";
+
 import { PlaceholderPage } from "@/components/ui/placeholder-page";
+
+export const metadata: Metadata = {
+  title: "Application details",
+};
 
 export default async function ApplicationDetailPage({
   params,

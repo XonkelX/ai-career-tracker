@@ -1,4 +1,10 @@
+import type { Metadata } from "next";
+
 import { PlaceholderPage } from "@/components/ui/placeholder-page";
+
+export const metadata: Metadata = {
+  title: "Dashboard",
+};
 
 const metrics = [
   "Total applications",
