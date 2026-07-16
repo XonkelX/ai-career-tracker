@@ -10,17 +10,7 @@ import {
   registerUser,
 } from "@/server/auth/register-user";
 import { registrationRateLimiter } from "@/server/auth/registration-rate-limit";
-
-async function getRateLimitIdentifier(): Promise<string> {
-  const requestHeaders = await headers();
-  const forwardedFor = requestHeaders.get("x-forwarded-for")?.split(",")[0];
-
-  return (
-    requestHeaders.get("x-real-ip")?.trim() ||
-    forwardedFor?.trim() ||
-    "unidentified-client"
-  );
-}
+import { getClientIdentifier } from "@/server/auth/rate-limit";
 
 export async function registerUserAction(
   _previousState: RegistrationActionState,
@@ -36,7 +26,7 @@ export async function registerUserAction(
     name: typeof values.name === "string" ? values.name.slice(0, 100) : "",
     email: typeof values.email === "string" ? values.email.slice(0, 254) : "",
   };
-  const rateLimitIdentifier = await getRateLimitIdentifier();
+  const rateLimitIdentifier = getClientIdentifier(await headers());
 
   if (!(await registrationRateLimiter.consume(rateLimitIdentifier))) {
     return {

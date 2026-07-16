@@ -1,4 +1,4 @@
-import { argon2id, hash } from "argon2";
+import { argon2id, hash, verify } from "argon2";
 
 const ARGON2ID_OPTIONS = {
   type: argon2id,
@@ -9,4 +9,11 @@ const ARGON2ID_OPTIONS = {
 
 export function hashPassword(password: string): Promise<string> {
   return hash(password, ARGON2ID_OPTIONS);
+}
+
+export function verifyPassword(
+  passwordHash: string,
+  password: string,
+): Promise<boolean> {
+  return verify(passwordHash, password);
 }

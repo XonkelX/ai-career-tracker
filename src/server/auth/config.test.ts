@@ -5,7 +5,8 @@ import { addTokenToSession, addUserToToken, authConfig } from "./config";
 
 describe("authentication configuration", () => {
   it("uses a finite JWT session without a database adapter", () => {
-    expect(authConfig.providers).toEqual([]);
+    expect(authConfig.providers).toHaveLength(1);
+    expect(authConfig.providers[0]).toMatchObject({ id: "credentials" });
     expect(authConfig.session).toEqual({
       strategy: "jwt",
       maxAge: 604_800,
@@ -13,6 +14,28 @@ describe("authentication configuration", () => {
     expect(authConfig.useSecureCookies).toBe(
       process.env.NODE_ENV === "production",
     );
+  });
+
+  it("rejects external redirect targets", async () => {
+    const redirect = authConfig.callbacks.redirect;
+
+    expect(
+      await redirect({
+        url: "https://attacker.example",
+        baseUrl: "https://career.example",
+      }),
+    ).toBe("/dashboard");
+  });
+
+  it("preserves same-origin redirect targets as internal paths", async () => {
+    const redirect = authConfig.callbacks.redirect;
+
+    expect(
+      await redirect({
+        url: "https://career.example/applications?status=APPLIED",
+        baseUrl: "https://career.example",
+      }),
+    ).toBe("/applications?status=APPLIED");
   });
 
   it("copies the user identifier and role into the JWT", () => {

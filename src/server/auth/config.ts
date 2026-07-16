@@ -1,6 +1,8 @@
 import type { NextAuthConfig, Session, User } from "next-auth";
 import type { JWT } from "next-auth/jwt";
 
+import { getSafeCallbackUrl } from "./callback-url";
+import { credentialsProvider } from "./credentials";
 import { DEFAULT_USER_ROLE } from "./roles";
 
 const SEVEN_DAYS_IN_SECONDS = 7 * 24 * 60 * 60;
@@ -47,7 +49,7 @@ export const authConfig = {
   pages: {
     signIn: "/sign-in",
   },
-  providers: [],
+  providers: [credentialsProvider],
   session: {
     strategy: "jwt",
     maxAge: SEVEN_DAYS_IN_SECONDS,
@@ -55,6 +57,7 @@ export const authConfig = {
   useSecureCookies: process.env.NODE_ENV === "production",
   callbacks: {
     authorized: ({ auth }) => Boolean(auth?.user),
+    redirect: ({ url, baseUrl }) => getSafeCallbackUrl(url, baseUrl),
     jwt: addUserToToken,
     session: addTokenToSession,
   },

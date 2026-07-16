@@ -2,7 +2,7 @@
 
 A production-oriented full-stack job application tracker with AI-powered resume analysis, cover-letter generation, interview preparation, and application management.
 
-> **Project status:** Registration foundation. New users can create an account through a validated, rate-limited server action with Argon2id password hashing. Auth.js encrypted JWT-session infrastructure and protected-route boundaries are configured, but no sign-in provider or sign-in flow exists yet; product data flows, uploads, and AI workflows remain deferred.
+> **Project status:** Credentials authentication foundation. New users can register and sign in through validated, rate-limited server flows with Argon2id password hashing and encrypted Auth.js JWT sessions. Protected-route boundaries are configured; sign-out and product data flows, uploads, and AI workflows remain deferred.
 
 ## Product goals
 
@@ -33,7 +33,7 @@ React Hook Form and the OpenAI SDK remain deferred until milestones that use the
 | ------------------------------- | --------------------------------------------- | -------------------- |
 | `/`                             | Public landing page                           | Placeholder complete |
 | `/sign-up`                      | Account registration                          | Implemented          |
-| `/sign-in`                      | Account login                                 | Placeholder only     |
+| `/sign-in`                      | Credentials login and safe redirects          | Implemented          |
 | `/dashboard`                    | Metrics, activity, deadlines                  | Placeholder only     |
 | `/applications`                 | Application table and Kanban views            | Placeholder only     |
 | `/applications/new`             | Create an application                         | Placeholder only     |
@@ -42,7 +42,7 @@ React Hook Form and the OpenAI SDK remain deferred until milestones that use the
 | `/ai-tools`                     | Resume, cover-letter, and interview tools     | Placeholder only     |
 | `/settings`                     | Profile, theme, privacy, and account controls | Placeholder only     |
 
-Dashboard routes now require an authenticated JWT session at both the request proxy and server layout boundaries. Because no provider or sign-in flow exists yet, the current sign-in page remains a non-functional placeholder.
+Dashboard routes require an authenticated JWT session at both the request proxy and server layout boundaries. Successful credentials login redirects to `/dashboard`; authenticated users who revisit `/sign-in` are also redirected there.
 
 ## Repository structure
 
@@ -187,11 +187,19 @@ The Prisma client uses the PostgreSQL driver adapter and is cached across develo
 
 Registration normalizes email addresses and validates all fields on the server before performing password hashing or database work. Passwords are hashed with Argon2id using [OWASP's minimum recommended configuration](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html) of 19 MiB memory, two iterations, and one degree of parallelism. Prisma creates users with an explicit `{ id: true }` selection, so `passwordHash` is never returned from the mutation.
 
-The included registration limiter permits five attempts per 15-minute window for a hashed client-network identifier. It is intentionally an in-process development boundary: production deployments with multiple instances must supply a shared implementation of the `RegistrationRateLimiter` interface, backed by infrastructure such as Redis and configured to trust only the hosting platform's forwarded-IP headers. Duplicate-email and persistence errors return the same generic client message and are never logged with submitted credentials.
+The included registration limiter permits five attempts per 15-minute window for a hashed client-network identifier. It is intentionally an in-process development boundary: production deployments with multiple instances must supply a shared implementation of the `RateLimiter` interface, backed by infrastructure such as Redis and configured to trust only the hosting platform's forwarded-IP headers. Duplicate-email and persistence errors return the same generic client message and are never logged with submitted credentials.
+
+## Login security
+
+Credentials login normalizes and validates input on the server, then selects only the user fields required for authentication. Argon2 verifies the submitted password against the stored Argon2id hash. A fixed dummy Argon2id hash is verified when no account or credentials password exists, reducing timing differences that could otherwise reveal account state. All authentication and infrastructure failures return the same generic message, and password values and hashes are never logged or returned.
+
+The login boundary permits ten attempts per 15-minute window per hashed client-network identifier using the shared in-memory `RateLimiter`. Production must replace it with a shared, atomic store and must accept forwarded client addresses only from a trusted proxy. This boundary limits opportunistic abuse but is not a substitute for deployment-level rate limiting and monitoring.
+
+Callback URLs must be internal absolute paths. External, protocol-relative, backslash-containing, and control-character-containing values fall back to `/dashboard`, preventing open redirects.
 
 ## Session security
 
-Auth.js uses its supported JWT strategy for the planned Credentials provider. The encrypted token is stored in Auth.js's HTTP-only, same-site session cookie; secure cookies are required in production and relaxed only for local HTTP development. Sessions expire after seven days. User ID and the single `USER` role are copied into the encrypted JWT at authentication time and exposed through the typed server session.
+Auth.js uses its supported JWT strategy for the Credentials provider. The encrypted token is stored in Auth.js's HTTP-only, same-site session cookie; secure cookies are required in production and relaxed only for local HTTP development. Sessions expire after seven days. User ID and the single `USER` role are copied into the encrypted JWT at authentication time and exposed through the typed server session.
 
 JWT sessions avoid a database lookup on every request and remove the database `Session` table. The trade-off is that an issued token cannot be centrally revoked before it expires. Token revocation, sign-out across all devices, refresh tokens, and remember-me behavior are explicitly outside the current scope.
 
