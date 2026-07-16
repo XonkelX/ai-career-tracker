@@ -15,6 +15,12 @@ enum ApplicationStatus {
   REJECTED
 }
 
+enum SalaryPeriod {
+  HOURLY
+  MONTHLY
+  ANNUAL
+}
+
 enum AiArtifactType {
   RESUME_ANALYSIS
   PROFESSIONAL_SUMMARY
@@ -103,9 +109,11 @@ model JobApplication {
   location        String?
   jobUrl          String?
   jobDescription  String?           @db.Text
-  salaryMin       Int?
-  salaryMax       Int?
+  /// Monetary amounts stored in ISO 4217 minor units.
+  salaryMinMinor  BigInt?
+  salaryMaxMinor  BigInt?
   salaryCurrency  String?           @db.VarChar(3)
+  salaryPeriod    SalaryPeriod?
   status          ApplicationStatus @default(SAVED)
   dateApplied     DateTime?
   deadline        DateTime?

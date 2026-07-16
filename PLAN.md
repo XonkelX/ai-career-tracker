@@ -66,10 +66,12 @@ The schema is defined in `prisma/schema.prisma`; the initial migration waits for
 
 ### Applications
 
-- `JobApplication`: belongs to a user and stores company, title, location, URL, job description, salary range/currency, status, date applied, deadline, and notes.
+- `JobApplication`: belongs to a user and stores company, title, location, URL, job description, salary range/currency/period, status, date applied, deadline, and notes.
 - Allowed states: `SAVED`, `APPLIED`, `INTERVIEW`, `OFFER`, `REJECTED`.
 - Indexes support status boards, date sorting, and upcoming-deadline queries per user.
-- Salary is represented as integer minor/whole currency units after the product decides its display convention; validation must require min ≤ max.
+- Salary amounts are stored as `BigInt` ISO 4217 minor units in `salaryMinMinor` and `salaryMaxMinor`. For example, USD 85,500.00 is stored as `8550000`; JPY uses a zero-decimal scale, while currencies with three minor digits use their published scale.
+- `salaryCurrency` is an uppercase ISO 4217 code and `salaryPeriod` is `HOURLY`, `MONTHLY`, or `ANNUAL`. Both are required by server validation whenever either salary bound is supplied.
+- Salary values represent gross compensation unless the source explicitly says otherwise. Validation must require non-negative values and minimum ≤ maximum. Application code must serialize Prisma `BigInt` values before returning them through JSON.
 
 ### Resumes
 
@@ -221,5 +223,5 @@ CI should run formatting checks, lint, typecheck, unit/component tests, producti
 - Private object-storage provider and malware-scanning service.
 - Resume text extraction method and supported file types.
 - AI model allowlist, data-processing terms, retention policy, quotas, and cost ceilings.
-- Salary storage convention and multi-currency reporting behavior.
+- Multi-currency aggregation and reporting behavior; unlike storage and display, totals must not combine currencies without an explicit conversion policy.
 - License for the public repository.
