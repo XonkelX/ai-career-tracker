@@ -1,0 +1,199 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum ApplicationStatus {
+  SAVED
+  APPLIED
+  INTERVIEW
+  OFFER
+  REJECTED
+}
+
+enum AiArtifactType {
+  RESUME_ANALYSIS
+  PROFESSIONAL_SUMMARY
+  COVER_LETTER
+  INTERVIEW_QUESTIONS
+}
+
+enum AiArtifactStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+enum ActivityType {
+  APPLICATION_CREATED
+  APPLICATION_UPDATED
+  STATUS_CHANGED
+  RESUME_LINKED
+  AI_ARTIFACT_CREATED
+}
+
+model User {
+  id            String           @id @default(cuid())
+  name          String?
+  email         String           @unique
+  emailVerified DateTime?
+  image         String?
+  passwordHash  String?
+  accounts      Account[]
+  sessions      Session[]
+  applications  JobApplication[]
+  resumes       Resume[]
+  aiArtifacts   AiArtifact[]
+  activities    Activity[]
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refreshToken      String? @db.Text
+  accessToken       String? @db.Text
+  expiresAt         Int?
+  tokenType         String?
+  scope             String?
+  idToken           String? @db.Text
+  sessionState      String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+model JobApplication {
+  id              String            @id @default(cuid())
+  userId          String
+  companyName     String
+  jobTitle        String
+  location        String?
+  jobUrl          String?
+  jobDescription  String?           @db.Text
+  salaryMin       Int?
+  salaryMax       Int?
+  salaryCurrency  String?           @db.VarChar(3)
+  status          ApplicationStatus @default(SAVED)
+  dateApplied     DateTime?
+  deadline        DateTime?
+  notes           String?           @db.Text
+  resumeVersionId String?
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  resumeVersion   ResumeVersion?    @relation(fields: [resumeVersionId], references: [id], onDelete: SetNull)
+  aiArtifacts     AiArtifact[]
+  activities      Activity[]
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  @@index([userId, status])
+  @@index([userId, deadline])
+  @@index([userId, dateApplied])
+  @@map("job_applications")
+}
+
+model Resume {
+  id        String          @id @default(cuid())
+  userId    String
+  name      String
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  versions  ResumeVersion[]
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  @@index([userId])
+  @@map("resumes")
+}
+
+model ResumeVersion {
+  id               String           @id @default(cuid())
+  resumeId         String
+  version          Int
+  originalFileName String
+  storageKey       String
+  mimeType         String
+  fileSizeBytes    Int
+  contentHash      String
+  extractedText    String?          @db.Text
+  resume           Resume           @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  applications     JobApplication[]
+  aiArtifacts      AiArtifact[]
+  createdAt        DateTime         @default(now())
+
+  @@unique([resumeId, version])
+  @@unique([resumeId, contentHash])
+  @@index([resumeId])
+  @@map("resume_versions")
+}
+
+model AiArtifact {
+  id              String           @id @default(cuid())
+  userId          String
+  applicationId   String?
+  resumeVersionId String?
+  type            AiArtifactType
+  status          AiArtifactStatus @default(PENDING)
+  model           String?
+  sourceSnapshot  Json
+  output          Json?
+  errorCode       String?
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  application     JobApplication?  @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  resumeVersion   ResumeVersion?   @relation(fields: [resumeVersionId], references: [id], onDelete: SetNull)
+  activities      Activity[]
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([userId, type, createdAt])
+  @@index([applicationId])
+  @@map("ai_artifacts")
+}
+
+model Activity {
+  id            String          @id @default(cuid())
+  userId        String
+  applicationId String?
+  aiArtifactId  String?
+  type          ActivityType
+  metadata      Json?
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  application   JobApplication? @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  aiArtifact    AiArtifact?     @relation(fields: [aiArtifactId], references: [id], onDelete: SetNull)
+  createdAt     DateTime        @default(now())
+
+  @@index([userId, createdAt])
+  @@index([applicationId])
+  @@map("activities")
+}
