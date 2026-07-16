@@ -2,7 +2,7 @@
 
 A production-oriented full-stack job application tracker with AI-powered resume analysis, cover-letter generation, interview preparation, and application management.
 
-> **Project status:** Database foundation. The repository contains the application shell, placeholder routes, initial PostgreSQL migration, Prisma runtime foundation, test configuration, Docker tooling, and implementation plan. Authentication, product data flows, uploads, and AI workflows are intentionally not implemented yet.
+> **Project status:** Authentication infrastructure. The repository contains the application shell, PostgreSQL and Prisma foundation, Auth.js database-session configuration, protected-route boundaries, test configuration, and Docker tooling. No authentication provider or user-facing sign-in flow is implemented yet; product data flows, uploads, and AI workflows also remain deferred.
 
 ## Product goals
 
@@ -20,11 +20,12 @@ AI output must never invent skills, experience, education, or achievements. Gene
 - Next.js 16 App Router, React 19, and strict TypeScript
 - Tailwind CSS 4
 - PostgreSQL 17 and Prisma 7
+- Auth.js 5 with persistent database sessions
 - Vitest, Testing Library, and Playwright
 - Docker and Docker Compose
 - ESLint and Prettier
 
-Planned milestone dependencies include NextAuth, Zod, React Hook Form, and the OpenAI SDK. They are intentionally not installed until the milestone that uses them, which keeps the foundation's production dependency and audit surface small.
+React Hook Form and the OpenAI SDK remain deferred until milestones that use them, keeping the production dependency and audit surface focused.
 
 ## Current routes
 
@@ -41,7 +42,7 @@ Planned milestone dependencies include NextAuth, Zod, React Hook Form, and the O
 | `/ai-tools`                     | Resume, cover-letter, and interview tools     | Placeholder only     |
 | `/settings`                     | Profile, theme, privacy, and account controls | Placeholder only     |
 
-Protected routing is planned for the authentication milestone; dashboard routes are intentionally accessible in this preview.
+Dashboard routes now require an authenticated database session at both the request proxy and server layout boundaries. Because no provider or sign-in flow exists yet, the current sign-in page remains a non-functional placeholder.
 
 ## Repository structure
 
@@ -126,14 +127,14 @@ Feature folders are intentionally empty boundaries at this stage. Code should be
 
 ## Environment variables
 
-| Variable              | Required           | Purpose                                                |
-| --------------------- | ------------------ | ------------------------------------------------------ |
-| `DATABASE_URL`        | Database runtime   | PostgreSQL connection string; required and server only |
-| `NEXTAUTH_URL`        | For authentication | Canonical authentication callback URL                  |
-| `NEXTAUTH_SECRET`     | For authentication | Strong random session-signing secret                   |
-| `OPENAI_API_KEY`      | For AI features    | Server-only OpenAI credential                          |
-| `NEXT_PUBLIC_APP_URL` | Yes                | Public canonical application URL                       |
-| `RESUME_STORAGE_DIR`  | For local uploads  | Development-only resume storage directory              |
+| Variable              | Required          | Purpose                                                |
+| --------------------- | ----------------- | ------------------------------------------------------ |
+| `DATABASE_URL`        | Database runtime  | PostgreSQL connection string; required and server only |
+| `AUTH_URL`            | Authentication    | Canonical authentication callback URL                  |
+| `AUTH_SECRET`         | Authentication    | Strong random session and token-signing secret         |
+| `OPENAI_API_KEY`      | For AI features   | Server-only OpenAI credential                          |
+| `NEXT_PUBLIC_APP_URL` | Yes               | Public canonical application URL                       |
+| `RESUME_STORAGE_DIR`  | For local uploads | Development-only resume storage directory              |
 
 Never commit `.env`, API keys, database credentials, resume content, or generated career documents. Variables prefixed with `NEXT_PUBLIC_` are exposed to the browser and must not contain secrets.
 
@@ -186,7 +187,7 @@ The Prisma client uses the PostgreSQL driver adapter and is cached across develo
 
 The initial Prisma schema defines:
 
-- Auth-compatible `User`, `Account`, `Session`, and `VerificationToken` models.
+- Auth-compatible `User`, `Account`, `Session`, and `VerificationToken` models, with a single `USER` role placeholder for future authorization policy.
 - `JobApplication` with ownership, status, compensation range, dates, notes, job description, and an optional linked resume version. Compensation uses `BigInt` ISO 4217 minor units plus an explicit hourly, monthly, or annual period; values are gross unless the source says otherwise.
 - `Resume` and immutable `ResumeVersion` records with storage metadata and content hashes.
 - `AiArtifact` records containing the artifact type, model, source snapshot, structured output, and execution status.

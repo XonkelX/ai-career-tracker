@@ -42,13 +42,18 @@ enum ActivityType {
   AI_ARTIFACT_CREATED
 }
 
+enum UserRole {
+  USER
+}
+
 model User {
   id            String           @id @default(cuid())
   name          String?
-  email         String           @unique
+  email         String?          @unique
   emailVerified DateTime?
   image         String?
   passwordHash  String?
+  role          UserRole         @default(USER)
   accounts      Account[]
   sessions      Session[]
   applications  JobApplication[]
