@@ -1,6 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import { cookies } from "next/headers";
 import { Geist, Geist_Mono } from "next/font/google";
+
+import { isTheme, THEME_COLORS } from "@/lib/theme";
+
 import "./globals.css";
 
 const geistSans = Geist({
@@ -28,12 +31,20 @@ export const metadata: Metadata = {
   ],
 };
 
-export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f8fafc" },
-    { media: "(prefers-color-scheme: dark)", color: "#020617" },
-  ],
-};
+export async function generateViewport(): Promise<Viewport> {
+  const themeCookie = (await cookies()).get("theme")?.value;
+
+  if (isTheme(themeCookie)) {
+    return { themeColor: THEME_COLORS[themeCookie] };
+  }
+
+  return {
+    themeColor: [
+      { media: "(prefers-color-scheme: light)", color: THEME_COLORS.light },
+      { media: "(prefers-color-scheme: dark)", color: THEME_COLORS.dark },
+    ],
+  };
+}
 
 export default async function RootLayout({
   children,
@@ -41,15 +52,13 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const themeCookie = (await cookies()).get("theme")?.value;
-  const theme =
-    themeCookie === "light" || themeCookie === "dark" ? themeCookie : undefined;
+  const theme = isTheme(themeCookie) ? themeCookie : undefined;
 
   return (
     <html
       className={`${geistSans.variable} ${geistMono.variable}`}
       data-theme={theme}
       lang="en"
-      suppressHydrationWarning
     >
       <body>{children}</body>
     </html>

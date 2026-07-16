@@ -293,17 +293,32 @@ export function ProductPreview() {
           </div>
 
           <div
-            aria-labelledby={`preview-tab-${activePreview}`}
-            className={
-              activePreview === "pipeline" ? "overflow-x-auto" : undefined
-            }
-            id={`preview-panel-${activePreview}`}
+            aria-labelledby="preview-tab-pipeline"
+            className="overflow-x-auto"
+            hidden={activePreview !== "pipeline"}
+            id="preview-panel-pipeline"
             role="tabpanel"
-            tabIndex={0}
+            tabIndex={activePreview === "pipeline" ? 0 : -1}
           >
-            {activePreview === "pipeline" && <PipelinePreview />}
-            {activePreview === "resume" && <ResumePreview />}
-            {activePreview === "interview" && <InterviewPreview />}
+            <PipelinePreview />
+          </div>
+          <div
+            aria-labelledby="preview-tab-resume"
+            hidden={activePreview !== "resume"}
+            id="preview-panel-resume"
+            role="tabpanel"
+            tabIndex={activePreview === "resume" ? 0 : -1}
+          >
+            <ResumePreview />
+          </div>
+          <div
+            aria-labelledby="preview-tab-interview"
+            hidden={activePreview !== "interview"}
+            id="preview-panel-interview"
+            role="tabpanel"
+            tabIndex={activePreview === "interview" ? 0 : -1}
+          >
+            <InterviewPreview />
           </div>
         </div>
       </div>
