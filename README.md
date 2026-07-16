@@ -208,7 +208,7 @@ JWT sessions avoid a database lookup on every request and remove the database `S
 The initial Prisma schema defines:
 
 - Auth-compatible `User`, `Account`, and `VerificationToken` models, with a single `USER` role placeholder for future authorization policy. Auth.js sessions are encrypted JWTs and are not stored in PostgreSQL.
-- `JobApplication` with ownership, status, compensation range, dates, notes, job description, and an optional linked resume version. Compensation uses `BigInt` ISO 4217 minor units plus an explicit hourly, monthly, or annual period; values are gross unless the source says otherwise.
+- `JobApplication` with ownership, status, compensation range, dates, notes, job description, and an optional linked resume version. Compensation uses `BigInt` ISO 4217 minor units plus an explicit hourly, monthly, or annual period; values are gross unless the source says otherwise. Version 1.0 derives each currency's minor-unit precision from the Node.js runtime's `Intl`/CLDR currency metadata rather than maintaining a separate fixed currency table.
 - `Resume` and immutable `ResumeVersion` records with storage metadata and content hashes.
 - `AiArtifact` records containing the artifact type, model, source snapshot, structured output, and execution status.
 - `Activity` records for dashboard history and audit-friendly user events.

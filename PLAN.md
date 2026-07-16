@@ -71,6 +71,7 @@ The schema is defined in `prisma/schema.prisma` and versioned through committed 
 - Allowed states: `SAVED`, `APPLIED`, `INTERVIEW`, `OFFER`, `REJECTED`.
 - Indexes support status boards, date sorting, and upcoming-deadline queries per user.
 - Salary amounts are stored as `BigInt` ISO 4217 minor units in `salaryMinMinor` and `salaryMaxMinor`. For example, USD 85,500.00 is stored as `8550000`; JPY uses a zero-decimal scale, while currencies with three minor digits use their published scale.
+- Version 1.0 resolves ISO 4217 minor-unit precision through the deployed Node.js runtime's `Intl`/CLDR metadata; it does not ship a separate fixed currency table.
 - `salaryCurrency` is an uppercase ISO 4217 code and `salaryPeriod` is `HOURLY`, `MONTHLY`, or `ANNUAL`. Both are required by server validation whenever either salary bound is supplied.
 - Salary values represent gross compensation unless the source explicitly says otherwise. Validation must require non-negative values and minimum ≤ maximum. Application code must serialize Prisma `BigInt` values before returning them through JSON.
 
