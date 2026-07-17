@@ -1,0 +1,22 @@
+{
+  "name": "careerflow-video",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "studio": "remotion studio src/index.ts",
+    "render": "remotion render src/index.ts CareerFlowV1Demo ../docs/assets/video/careerflow-v1-demo.mp4 --codec h264 --crf 25 --pixel-format yuv420p",
+    "render:preview": "remotion render src/index.ts CareerFlowPreview ../docs/assets/video/careerflow-preview.mp4 --codec h264 --crf 28 --pixel-format yuv420p"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.490",
+    "react": "19.2.7",
+    "react-dom": "19.2.7",
+    "remotion": "4.0.490"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "typescript": "^5.0.0"
+  }
+}

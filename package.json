@@ -1,6 +1,6 @@
 {
   "name": "careerflow",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "engines": {
     "node": "22.x",
@@ -23,7 +23,10 @@
     "db:migrate": "prisma migrate dev",
     "db:migrate:deploy": "prisma migrate deploy",
     "db:studio": "prisma studio",
-    "check": "npm run lint && npm run typecheck && npm run test"
+    "check": "npm run lint && npm run typecheck && npm run test",
+    "video:studio": "npm --prefix video run studio",
+    "video:render": "npm --prefix video run render",
+    "video:render:preview": "npm --prefix video run render:preview"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.8.0",

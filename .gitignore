@@ -15,6 +15,8 @@
 /.playwright-cli/
 /playwright-report/
 /test-results/
+/qa-artifacts/
+/browser-profiles/
 
 # next.js
 /.next/
@@ -22,6 +24,17 @@
 
 # production
 /build
+
+# portfolio video intermediates
+/video/node_modules/
+/video/.remotion/
+/video/.cache/
+/video/out/
+/video/raw/
+/video/tmp/
+/video/*.webm
+/video/*.mov
+/video/*.mkv
 
 # misc
 .DS_Store
