@@ -19,15 +19,15 @@ export function SiteFooter() {
         <div className="flex flex-col gap-10 sm:flex-row sm:items-start sm:justify-between">
           <div className="max-w-sm">
             <Link
-              aria-label="AI Career Tracker home"
+              aria-label="CareerFlow home"
               className="inline-flex rounded-md"
               href="/"
             >
               <BrandLockup />
             </Link>
             <p className="text-secondary mt-4 text-sm leading-6">
-              A focused workspace for applications, career materials, and
-              interview preparation.
+              A privacy-conscious workspace for applications, deadlines,
+              progress, and resume versions.
             </p>
           </div>
 
@@ -48,8 +48,8 @@ export function SiteFooter() {
         </div>
 
         <div className="border-border text-muted mt-12 flex flex-col gap-3 border-t pt-6 text-xs sm:flex-row sm:items-center sm:justify-between">
-          <p>© {new Date().getFullYear()} AI Career Tracker.</p>
-          <p>Built for thoughtful, factual career progress.</p>
+          <p>© {new Date().getFullYear()} CareerFlow.</p>
+          <p>Your career data stays organized and under your ownership.</p>
         </div>
       </div>
     </footer>

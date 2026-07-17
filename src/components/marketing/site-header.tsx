@@ -20,7 +20,7 @@ export async function SiteHeader() {
     <header className="border-border/80 sticky top-0 z-50 border-b bg-[var(--header)] backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:h-[72px] sm:px-6 lg:px-8">
         <Link
-          aria-label="AI Career Tracker home"
+          aria-label="CareerFlow home"
           className="text-primary rounded-md"
           href="/"
         >

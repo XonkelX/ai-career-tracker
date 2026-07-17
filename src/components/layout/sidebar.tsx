@@ -18,7 +18,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
     >
       <div className="border-border flex h-16 shrink-0 items-center border-b px-4">
         <Link
-          aria-label="AI Career Tracker dashboard"
+          aria-label="CareerFlow dashboard"
           className="text-primary min-w-0 rounded-md"
           href="/dashboard"
         >

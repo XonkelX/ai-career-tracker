@@ -15,7 +15,7 @@ export default async function ApplicationDetailPage({
 
   return (
     <PlaceholderPage
-      description={`Application detail placeholder for ID ${applicationId}. Editing, activity, linked resume, and AI actions are deferred.`}
+      description={`Application detail placeholder for ID ${applicationId}. Editing, activity history, and linked resume details are available through focused workflows.`}
       title="Application details"
     />
   );

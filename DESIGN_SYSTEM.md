@@ -1,11 +1,11 @@
-# AI Career Tracker Design System
+# CareerFlow Design System
 
 **Status:** Design specification — no components implemented  
 **Version:** 0.1  
 **Target:** WCAG 2.2 AA  
 **Product character:** Modern, premium, calm, trustworthy, and precise
 
-This document defines the visual and interaction foundation for AI Career Tracker. It is the source of truth for future design tokens, primitives, product components, and accessibility behavior. Values in this document are specifications; they are not yet implemented in application code.
+This document defines the visual and interaction foundation for CareerFlow. It is the source of truth for future design tokens, primitives, product components, and accessibility behavior. Values in this document are specifications; they are not yet implemented in application code.
 
 ## 1. Design philosophy
 
@@ -19,7 +19,7 @@ Users should understand the current state, primary action, and next decision at 
 
 ### Evidence over spectacle
 
-AI suggestions must look reviewable rather than authoritative or magical. Source material, uncertainty, unsupported claims, and user-editable drafts should be visually distinct. AI styling must never imply that generated content is verified.
+Sensitive career data must look user-owned and reviewable. Resume associations, application status, deadlines, and user-authored notes should remain clearly distinguishable without implying verification the product cannot provide.
 
 ### Calm momentum
 
@@ -39,7 +39,7 @@ Components must consume semantic tokens rather than hard-coded visual values. A 
 
 - Slate neutrals carry most of the interface.
 - Cyan is the primary brand and focus color. Use it deliberately, not as decoration across every surface.
-- Violet identifies AI-assisted workflows but never replaces semantic status colors.
+- Violet is a restrained secondary accent and never replaces semantic status colors.
 - Success, warning, danger, and information colors communicate meaning and must always include text, an icon, or another non-color cue.
 - Use semantic tokens in components. Primitive color values belong only in the token layer.
 - Every implemented foreground/background pair must be verified for WCAG contrast in both themes.
@@ -89,16 +89,16 @@ The canonical token name is the CSS custom-property name. The same identifier, w
 | `cyan-900` | `#164E63` |
 | `cyan-950` | `#083344` |
 
-#### AI violet
+#### Accent violet
 
 | Token        | Value     | Constraint          |
 | ------------ | --------- | ------------------- |
-| `violet-50`  | `#F5F3FF` | Light AI tint       |
-| `violet-200` | `#DDD6FE` | Light AI border     |
+| `violet-50`  | `#F5F3FF` | Light accent tint   |
+| `violet-200` | `#DDD6FE` | Light accent border |
 | `violet-400` | `#A78BFA` | Dark-theme accent   |
-| `violet-500` | `#8B5CF6` | AI icon/accent      |
-| `violet-700` | `#6D28D9` | Light-theme AI text |
-| `violet-950` | `#2E1065` | Dark AI tint text   |
+| `violet-500` | `#8B5CF6` | Accent icon         |
+| `violet-700` | `#6D28D9` | Light accent text   |
+| `violet-950` | `#2E1065` | Dark accent tint    |
 
 ### Semantic colors
 
@@ -133,8 +133,8 @@ The canonical token name is the CSS custom-property name. The same identifier, w
 | `overlay-scrim`             | `rgb(2 6 23 / 0.48)` | `rgb(2 6 23 / 0.72)` |
 | `link`                      | `#0E7490`            | `#67E8F9`            |
 | `link-visited`              | `#6D28D9`            | `#A78BFA`            |
-| `ai-accent`                 | `#6D28D9`            | `#C4B5FD`            |
-| `ai-surface`                | `#F5F3FF`            | `#2E1065`            |
+| `accent`                    | `#6D28D9`            | `#C4B5FD`            |
+| `accent-surface`            | `#F5F3FF`            | `#2E1065`            |
 
 Do not use cyan below `cyan-700` for normal-size text on white. Do not use semantic background colors as the only status indicator.
 
@@ -142,16 +142,16 @@ Do not use cyan below `cyan-700` for normal-size text on white. Do not use seman
 
 Every interaction intent must publish the five slots `background`, `foreground`, `border`, `icon`, and `focus` for every state below. The canonical pattern is `--color-action-{intent}-{state}-{slot}`. Each token must resolve independently in light and dark themes; components may not infer states with opacity, filters, or raw palette values.
 
-| State     | Neutral                      | Primary                      | Destructive                      | AI                      |
-| --------- | ---------------------------- | ---------------------------- | -------------------------------- | ----------------------- |
-| Default   | `action-neutral-default-*`   | `action-primary-default-*`   | `action-destructive-default-*`   | `action-ai-default-*`   |
-| Hover     | `action-neutral-hover-*`     | `action-primary-hover-*`     | `action-destructive-hover-*`     | `action-ai-hover-*`     |
-| Active    | `action-neutral-active-*`    | `action-primary-active-*`    | `action-destructive-active-*`    | `action-ai-active-*`    |
-| Selected  | `action-neutral-selected-*`  | `action-primary-selected-*`  | `action-destructive-selected-*`  | `action-ai-selected-*`  |
-| Disabled  | `action-neutral-disabled-*`  | `action-primary-disabled-*`  | `action-destructive-disabled-*`  | `action-ai-disabled-*`  |
-| Read-only | `action-neutral-read-only-*` | `action-primary-read-only-*` | `action-destructive-read-only-*` | `action-ai-read-only-*` |
-| Invalid   | `action-neutral-invalid-*`   | `action-primary-invalid-*`   | `action-destructive-invalid-*`   | `action-ai-invalid-*`   |
-| Loading   | `action-neutral-loading-*`   | `action-primary-loading-*`   | `action-destructive-loading-*`   | `action-ai-loading-*`   |
+| State     | Neutral                      | Primary                      | Destructive                      | Accent                      |
+| --------- | ---------------------------- | ---------------------------- | -------------------------------- | --------------------------- |
+| Default   | `action-neutral-default-*`   | `action-primary-default-*`   | `action-destructive-default-*`   | `action-accent-default-*`   |
+| Hover     | `action-neutral-hover-*`     | `action-primary-hover-*`     | `action-destructive-hover-*`     | `action-accent-hover-*`     |
+| Active    | `action-neutral-active-*`    | `action-primary-active-*`    | `action-destructive-active-*`    | `action-accent-active-*`    |
+| Selected  | `action-neutral-selected-*`  | `action-primary-selected-*`  | `action-destructive-selected-*`  | `action-accent-selected-*`  |
+| Disabled  | `action-neutral-disabled-*`  | `action-primary-disabled-*`  | `action-destructive-disabled-*`  | `action-accent-disabled-*`  |
+| Read-only | `action-neutral-read-only-*` | `action-primary-read-only-*` | `action-destructive-read-only-*` | `action-accent-read-only-*` |
+| Invalid   | `action-neutral-invalid-*`   | `action-primary-invalid-*`   | `action-destructive-invalid-*`   | `action-accent-invalid-*`   |
+| Loading   | `action-neutral-loading-*`   | `action-primary-loading-*`   | `action-destructive-loading-*`   | `action-accent-loading-*`   |
 
 The `*` suffix represents all five required slots. Loading preserves the control's intent and label contrast. Disabled styling may use `--opacity-disabled` as a supporting token, but opacity must not be its only cue. Read-only and invalid remain legible and distinguishable without relying on color alone.
 
@@ -354,7 +354,7 @@ src/
 │   ├── auth/
 │   ├── dashboard/
 │   ├── resumes/
-│   └── ai/
+│   └── resumes/
 ├── styles/
 │   ├── tokens.css                # Primitive and semantic CSS variables
 │   ├── themes.css                # Light/dark semantic mappings
@@ -388,7 +388,7 @@ The minimum standard is WCAG 2.2 AA.
 - All interactive controls are reachable and operable with a keyboard.
 - Focus order follows visual and reading order.
 - Focus indicators are never removed. Use a two-color treatment: a one-pixel inner keyline that contrasts with the control and a two-pixel outer `focus-ring` with a two-pixel offset that contrasts with the adjacent surface. The treatment must maintain at least `3:1` contrast against both boundaries.
-- Brand, destructive, AI-tinted, image-backed, and dark surfaces must use the semantic inner keyline that provides the stronger local contrast; they must not substitute a single brand-colored ring.
+- Brand, destructive, accent-tinted, image-backed, and dark surfaces must use the semantic inner keyline that provides the stronger local contrast; they must not substitute a single brand-colored ring.
 - Focus indicators must not be clipped by overflow containers. In forced-colors mode, the focus fallback uses a visible system-color outline rather than relying on authored shadows or fills.
 - Dialogs trap focus, close with `Escape`, restore focus to the trigger, and have an accessible title.
 - Menus, listboxes, tabs, and comboboxes follow established WAI-ARIA interaction patterns.
@@ -399,7 +399,7 @@ The minimum standard is WCAG 2.2 AA.
 - Normal text: minimum `4.5:1` contrast.
 - Large text: minimum `3:1` contrast.
 - Controls, focus indicators, icons conveying meaning, and component boundaries: minimum `3:1` against adjacent colors.
-- Never use color alone for application status, validation, selection, or AI confidence.
+- Never use color alone for application status, validation, selection, or association state.
 
 ### Forms and feedback
 
@@ -420,7 +420,7 @@ The minimum standard is WCAG 2.2 AA.
 - The interface remains usable at 200% browser zoom and with 400% text reflow at a 320 CSS-pixel viewport.
 - Content must not require two-dimensional scrolling except for genuinely tabular regions.
 - Respect `prefers-reduced-motion` and remove nonessential movement.
-- AI-generated content must be labeled as a draft, editable, and distinguishable from user-provided facts without relying on color alone.
+- Resume-family names, version labels, and application associations must be distinguishable in text without relying on color alone.
 
 ## 10. Dark mode strategy
 
@@ -519,7 +519,7 @@ Motion communicates relationship, state, and continuity. It must never delay wor
 - Icons align to the text’s visual center, not merely the line box.
 - Decorative icons use `aria-hidden="true"`.
 - Meaningful standalone icons require an accessible name, usually through the parent control.
-- Pair unfamiliar icons with text. Never use an icon alone for destructive, AI, upload, or status meaning unless the label is available to assistive technology and the interaction is well established.
+- Pair unfamiliar icons with text. Never use an icon alone for destructive, association, upload, or status meaning unless the label is available to assistive technology and the interaction is well established.
 - Product-specific illustrations or logos must not be assembled from arbitrary icon combinations.
 - Status icons always accompany status text.
 
@@ -598,9 +598,9 @@ Do not skip directly to product composites. Each layer depends on the accessibil
 - [ ] Resume version card
 - [ ] Activity timeline
 - [ ] Deadline indicator
-- [ ] AI draft label and provenance panel
+- [ ] Resume association selector and status
 - [ ] Unsupported-claim warning
-- [ ] AI generation review panel
+- [ ] Resume-version metadata form
 
 ### Phase 7 — Page patterns and validation
 
@@ -608,7 +608,7 @@ Do not skip directly to product composites. Each layer depends on the accessibil
 - [ ] Application editor pattern
 - [ ] Dashboard composition
 - [ ] Resume management composition
-- [ ] AI workflow composition
+- [ ] Resume-management workflow composition
 - [ ] Responsive and zoom review
 - [ ] Keyboard and screen-reader review
 - [ ] Light/dark contrast audit
@@ -638,7 +638,7 @@ Before any component is considered stable, confirm:
 
 - **DS-01:** Defined canonical CSS-safe token naming and renamed `space-0.5` to `space-050`.
 - **DS-02:** Specified primitive, semantic, and exceptional component token layers, including consumption, ownership, override, and deprecation rules.
-- **DS-04:** Added the required neutral, primary, destructive, and AI interaction-state token matrix and its five visual slots for both themes.
+- **DS-04:** Added the required neutral, primary, destructive, and accent interaction-state token matrix and its five visual slots for both themes.
 - **DS-05:** Added overlay, inverse, link, visited-link, selection-foreground, opacity, border, outline, icon, chart-series, and named stacking tokens.
 - **A11Y-01:** Replaced the single focus-ring rule with a two-color, non-clipping focus treatment and defined surface and forced-color fallbacks.
 - **A11Y-06:** Added input-purpose, password-manager, required-field, validation, idempotent submission, focus, and value-retention requirements.

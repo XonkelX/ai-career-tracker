@@ -8,7 +8,6 @@ import {
   DashboardIcon,
   ResumeIcon,
   SettingsIcon,
-  SparkIcon,
   type ShellIcon,
 } from "./shell-icons";
 
@@ -22,7 +21,6 @@ export const NAVIGATION_ITEMS: NavigationItem[] = [
   { href: "/dashboard", label: "Dashboard", icon: DashboardIcon },
   { href: "/applications", label: "Applications", icon: ApplicationsIcon },
   { href: "/resumes", label: "Resumes", icon: ResumeIcon },
-  { href: "/ai-tools", label: "AI tools", icon: SparkIcon },
   { href: "/settings", label: "Settings", icon: SettingsIcon },
 ];
 

@@ -32,7 +32,7 @@ export function BrandLockup({ compact = false }: { compact?: boolean }) {
     <span className="inline-flex items-center gap-2.5 font-semibold tracking-[-0.02em]">
       <BrandMark className="text-brand size-7" />
       <span className={compact ? "sr-only sm:not-sr-only" : undefined}>
-        AI Career Tracker
+        CareerFlow
       </span>
     </span>
   );

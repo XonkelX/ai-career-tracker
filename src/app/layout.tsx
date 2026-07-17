@@ -18,16 +18,16 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "AI Career Tracker",
-    template: "%s | AI Career Tracker",
+    default: "CareerFlow",
+    template: "%s | CareerFlow",
   },
   description:
-    "Organize job applications and use grounded AI assistance for resumes, cover letters, and interview preparation.",
+    "Organize job applications, track deadlines and progress, and manage resume versions in one privacy-conscious workspace.",
   keywords: [
     "job application tracker",
-    "AI resume analysis",
-    "cover letter generator",
-    "interview preparation",
+    "job search dashboard",
+    "application deadlines",
+    "resume version management",
   ],
 };
 

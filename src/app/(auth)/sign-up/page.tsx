@@ -17,8 +17,8 @@ export default function SignUpPage() {
         Create an account
       </h1>
       <p className="mt-3 leading-7 text-slate-300">
-        Start organizing your search with one secure account. You will sign in
-        separately after registration.
+        Start organizing your job search in a private, user-owned workspace. You
+        will sign in separately after registration.
       </p>
       <RegistrationForm />
       <p className="mt-7 text-center text-sm text-slate-400">

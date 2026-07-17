@@ -10,10 +10,10 @@ describe("ProductPreview", () => {
     render(<ProductPreview />);
 
     const pipelineTab = screen.getByRole("tab", { name: "Pipeline" });
-    const resumeTab = screen.getByRole("tab", { name: "Resume match" });
-    const interviewTab = screen.getByRole("tab", { name: "Interview prep" });
+    const dashboardTab = screen.getByRole("tab", { name: "Dashboard" });
+    const resumesTab = screen.getByRole("tab", { name: "Resume versions" });
 
-    for (const tab of [pipelineTab, resumeTab, interviewTab]) {
+    for (const tab of [pipelineTab, dashboardTab, resumesTab]) {
       const panelId = tab.getAttribute("aria-controls");
       expect(panelId).toBeTruthy();
       expect(document.getElementById(panelId as string)).toBeInTheDocument();
@@ -22,20 +22,20 @@ describe("ProductPreview", () => {
     const pipelinePanel = screen.getByRole("tabpanel", {
       name: "Pipeline",
     });
-    const resumePanel = document.getElementById("preview-panel-resume");
-    const interviewPanel = document.getElementById("preview-panel-interview");
+    const dashboardPanel = document.getElementById("preview-panel-dashboard");
+    const resumesPanel = document.getElementById("preview-panel-resumes");
 
     expect(pipelinePanel).toBeVisible();
-    expect(resumePanel).toHaveAttribute("role", "tabpanel");
-    expect(interviewPanel).toHaveAttribute("role", "tabpanel");
-    expect(resumePanel).not.toBeVisible();
-    expect(interviewPanel).not.toBeVisible();
+    expect(dashboardPanel).toHaveAttribute("role", "tabpanel");
+    expect(resumesPanel).toHaveAttribute("role", "tabpanel");
+    expect(dashboardPanel).not.toBeVisible();
+    expect(resumesPanel).not.toBeVisible();
 
-    await user.click(resumeTab);
+    await user.click(dashboardTab);
 
     expect(pipelinePanel).not.toBeVisible();
-    expect(resumePanel).toBeVisible();
-    expect(interviewPanel).not.toBeVisible();
+    expect(dashboardPanel).toBeVisible();
+    expect(resumesPanel).not.toBeVisible();
   });
 
   it("supports arrow, Home, and End key navigation", async () => {
@@ -43,20 +43,20 @@ describe("ProductPreview", () => {
     render(<ProductPreview />);
 
     const pipelineTab = screen.getByRole("tab", { name: "Pipeline" });
-    const resumeTab = screen.getByRole("tab", { name: "Resume match" });
-    const interviewTab = screen.getByRole("tab", { name: "Interview prep" });
+    const dashboardTab = screen.getByRole("tab", { name: "Dashboard" });
+    const resumesTab = screen.getByRole("tab", { name: "Resume versions" });
 
     pipelineTab.focus();
     await user.keyboard("{ArrowRight}");
-    expect(resumeTab).toHaveFocus();
-    expect(resumeTab).toHaveAttribute("aria-selected", "true");
+    expect(dashboardTab).toHaveFocus();
+    expect(dashboardTab).toHaveAttribute("aria-selected", "true");
 
     await user.keyboard("{ArrowLeft}");
     expect(pipelineTab).toHaveFocus();
 
     await user.keyboard("{End}");
-    expect(interviewTab).toHaveFocus();
-    expect(interviewTab).toHaveAttribute("aria-selected", "true");
+    expect(resumesTab).toHaveFocus();
+    expect(resumesTab).toHaveAttribute("aria-selected", "true");
 
     await user.keyboard("{Home}");
     expect(pipelineTab).toHaveFocus();

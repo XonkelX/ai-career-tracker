@@ -17,9 +17,9 @@ const benefits = [
     icon: ClockIcon,
   },
   {
-    title: "Protect the truth of your experience",
+    title: "Keep career data under your ownership",
     description:
-      "AI suggestions stay grounded in the material you provide and remain clearly labeled for review.",
+      "Every application and resume version is scoped to your authenticated account with privacy-conscious defaults.",
     icon: ShieldIcon,
   },
   {
@@ -29,9 +29,9 @@ const benefits = [
     icon: TrendIcon,
   },
   {
-    title: "Prepare from the actual role",
+    title: "Find the right opportunity quickly",
     description:
-      "Resume guidance, cover-letter drafts, and interview questions begin with the job description.",
+      "Search by company or role and combine status, salary, and deadline filters without moving data into the browser.",
     icon: SparkIcon,
   },
 ];
@@ -46,7 +46,7 @@ export function BenefitsSection() {
       <div className="mx-auto grid max-w-7xl gap-14 px-4 sm:px-6 lg:grid-cols-[0.8fr_1.2fr] lg:gap-20 lg:px-8">
         <div className="lg:sticky lg:top-32 lg:self-start" id="benefits-title">
           <SectionHeading
-            description="AI Career Tracker is designed around one principle: the product should help you make better decisions without making the search feel heavier."
+            description="CareerFlow is designed around one principle: the product should help you understand and manage your search without making the process feel heavier."
             eyebrow="Quietly useful by design"
             title="More clarity, without more process."
             action={

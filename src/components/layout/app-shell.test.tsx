@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AppShell } from "./app-shell";
+import { NAVIGATION_ITEMS } from "./navigation";
 
 const { mockUsePathname } = vi.hoisted(() => ({
   mockUsePathname: vi.fn(),
@@ -15,6 +16,24 @@ vi.mock("next/navigation", () => ({
 describe("AppShell", () => {
   beforeEach(() => {
     mockUsePathname.mockReturnValue("/applications/new");
+  });
+
+  it("uses CareerFlow branding and omits AI navigation from Version 1.0", () => {
+    render(
+      <AppShell>
+        <h1>Page content</h1>
+      </AppShell>,
+    );
+
+    expect(
+      screen.getByRole("link", { name: "CareerFlow dashboard" }),
+    ).toHaveAttribute("href", "/dashboard");
+    expect(NAVIGATION_ITEMS.map(({ label }) => label)).toEqual([
+      "Dashboard",
+      "Applications",
+      "Resumes",
+      "Settings",
+    ]);
   });
 
   it("marks nested navigation as active and collapses the desktop sidebar", async () => {
@@ -56,7 +75,7 @@ describe("AppShell", () => {
     await user.click(openButton);
 
     const drawer = screen.getByRole("dialog", {
-      name: "AI Career Tracker",
+      name: "CareerFlow",
     });
     const closeButton = within(drawer).getByRole("button", {
       name: "Close navigation menu",

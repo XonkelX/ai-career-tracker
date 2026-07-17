@@ -2,15 +2,15 @@
 
 import { useState, type KeyboardEvent } from "react";
 
-import { CheckIcon, ClockIcon, SparkIcon } from "./icons";
+import { CheckIcon, ClockIcon, TrendIcon } from "./icons";
 import { SectionHeading } from "./section-heading";
 
-type Preview = "pipeline" | "resume" | "interview";
+type Preview = "pipeline" | "dashboard" | "resumes";
 
 const tabs: { id: Preview; label: string }[] = [
   { id: "pipeline", label: "Pipeline" },
-  { id: "resume", label: "Resume match" },
-  { id: "interview", label: "Interview prep" },
+  { id: "dashboard", label: "Dashboard" },
+  { id: "resumes", label: "Resume versions" },
 ];
 
 const columns = [
@@ -100,56 +100,62 @@ function PipelinePreview() {
   );
 }
 
-function ResumePreview() {
-  const keywords = ["Design systems", "User research", "Prototyping", "Figma"];
+function DashboardPreview() {
+  const statuses = [
+    ["Saved", "12"],
+    ["Applied", "8"],
+    ["Interviews", "3"],
+    ["Offers", "1"],
+  ];
 
   return (
     <div className="animate-preview grid gap-4 p-4 sm:p-5 lg:grid-cols-[0.8fr_1.2fr]">
       <section
         className="rounded-xl border border-[var(--preview-border)] bg-slate-950/35 p-5"
-        aria-label="Example resume score"
+        aria-label="Example application metrics"
       >
         <p className="font-mono text-[10px] tracking-[0.14em] text-cyan-300 uppercase">
-          Example match
+          Search progress
         </p>
         <div className="mt-5 flex items-end gap-2">
           <span className="text-5xl font-semibold tracking-[-0.06em] text-white">
-            82
+            24
           </span>
-          <span className="pb-1 text-sm text-slate-400">/ 100</span>
+          <span className="pb-1 text-sm text-slate-400">applications</span>
         </div>
         <div className="mt-5 h-1.5 overflow-hidden rounded-full bg-slate-800">
-          <div className="h-full w-[82%] rounded-full bg-cyan-300" />
+          <div className="h-full w-[62%] rounded-full bg-cyan-300" />
         </div>
         <p className="mt-5 text-xs leading-5 text-slate-400">
-          Strong foundation. Make your systems work more explicit and add one
-          measurable collaboration outcome.
+          Three applications have reached an interview or later stage, with two
+          deadlines coming up this week.
         </p>
       </section>
 
       <section
         className="rounded-xl border border-[var(--preview-border)] bg-[var(--preview-panel)] p-5"
-        aria-label="Example resume suggestions"
+        aria-label="Example status breakdown"
       >
         <div className="flex items-center gap-2 text-xs font-medium text-white">
-          <SparkIcon className="size-4 text-violet-300" />
-          Evidence found in your resume
+          <TrendIcon className="size-4 text-violet-300" />
+          Applications by status
         </div>
         <ul className="mt-4 grid gap-2 sm:grid-cols-2">
-          {keywords.map((keyword) => (
+          {statuses.map(([status, count]) => (
             <li
               className="flex items-center gap-2 rounded-lg border border-[var(--preview-border)] bg-slate-950/30 px-3 py-2.5 text-[11px] text-slate-300"
-              key={keyword}
+              key={status}
             >
               <CheckIcon className="size-3.5 text-cyan-300" />
-              {keyword}
+              <span className="flex-1">{status}</span>
+              <span className="font-mono text-white">{count}</span>
             </li>
           ))}
         </ul>
         <div className="mt-4 rounded-lg border border-violet-400/20 bg-violet-400/5 p-3">
           <p className="text-[11px] leading-5 text-violet-200">
-            AI draft · Review every suggestion. Skills and outcomes are never
-            added unless they appear in your source material.
+            Metrics are calculated from your own application records and remain
+            scoped to your account.
           </p>
         </div>
       </section>
@@ -157,33 +163,32 @@ function ResumePreview() {
   );
 }
 
-function InterviewPreview() {
-  const questions = [
-    "How have you helped a design system earn adoption across teams?",
-    "Tell me about a time research changed your product direction.",
-    "How do you balance craft quality with a fixed delivery date?",
+function ResumeVersionsPreview() {
+  const versions = [
+    ["Product Design Resume", "Core v3", "4 applications"],
+    ["Design Systems Resume", "Leadership v2", "2 applications"],
+    ["UX Engineering Resume", "Frontend v1", "1 application"],
   ];
 
   return (
     <div className="animate-preview grid gap-4 p-4 sm:p-5 lg:grid-cols-[1.2fr_0.8fr]">
       <section
         className="rounded-xl border border-[var(--preview-border)] bg-[var(--preview-panel)] p-5"
-        aria-label="Example interview questions"
+        aria-label="Example resume versions"
       >
-        <p className="text-xs font-medium text-white">
-          Questions shaped by the role
-        </p>
+        <p className="text-xs font-medium text-white">Saved resume versions</p>
         <ol className="mt-4 space-y-2.5">
-          {questions.map((question, index) => (
+          {versions.map(([name, label, usage], index) => (
             <li
               className="flex gap-3 rounded-lg border border-[var(--preview-border)] bg-slate-950/30 p-3"
-              key={question}
+              key={name}
             >
               <span className="font-mono text-[10px] text-cyan-300">
                 0{index + 1}
               </span>
-              <span className="text-[11px] leading-5 text-slate-300">
-                {question}
+              <span className="min-w-0 text-[11px] leading-5 text-slate-300">
+                <strong className="block truncate text-white">{name}</strong>
+                {label} · {usage}
               </span>
             </li>
           ))}
@@ -191,19 +196,19 @@ function InterviewPreview() {
       </section>
       <aside className="rounded-xl border border-[var(--preview-border)] bg-slate-950/35 p-5">
         <p className="font-mono text-[10px] tracking-[0.14em] text-violet-300 uppercase">
-          Practice focus
+          Associated version
         </p>
         <p className="mt-4 text-lg font-semibold tracking-tight text-white">
-          Design systems leadership
+          Core v3
         </p>
         <p className="mt-2 text-xs leading-5 text-slate-400">
-          Drawn from the responsibilities and qualifications in this demo role.
+          Used for Senior Product Designer at Orbit.
         </p>
         <div className="mt-5 space-y-2 text-[11px] text-slate-300">
           {[
-            "Choose a specific example",
-            "Explain your decisions",
-            "Close with the outcome",
+            "Family: Product Design Resume",
+            "Source: product-design-v3.pdf",
+            "Updated Jul 14",
           ].map((item) => (
             <div className="flex items-center gap-2" key={item}>
               <CheckIcon className="size-3.5 text-violet-300" />
@@ -303,22 +308,22 @@ export function ProductPreview() {
             <PipelinePreview />
           </div>
           <div
-            aria-labelledby="preview-tab-resume"
-            hidden={activePreview !== "resume"}
-            id="preview-panel-resume"
+            aria-labelledby="preview-tab-dashboard"
+            hidden={activePreview !== "dashboard"}
+            id="preview-panel-dashboard"
             role="tabpanel"
-            tabIndex={activePreview === "resume" ? 0 : -1}
+            tabIndex={activePreview === "dashboard" ? 0 : -1}
           >
-            <ResumePreview />
+            <DashboardPreview />
           </div>
           <div
-            aria-labelledby="preview-tab-interview"
-            hidden={activePreview !== "interview"}
-            id="preview-panel-interview"
+            aria-labelledby="preview-tab-resumes"
+            hidden={activePreview !== "resumes"}
+            id="preview-panel-resumes"
             role="tabpanel"
-            tabIndex={activePreview === "interview" ? 0 : -1}
+            tabIndex={activePreview === "resumes" ? 0 : -1}
           >
-            <InterviewPreview />
+            <ResumeVersionsPreview />
           </div>
         </div>
       </div>

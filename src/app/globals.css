@@ -15,8 +15,6 @@
   --brand-strong: #155e75;
   --brand-soft: #ecfeff;
   --brand-on: #ffffff;
-  --ai: #6d28d9;
-  --ai-soft: #f5f3ff;
   --focus: #0e7490;
   --grid-line: rgb(15 23 42 / 0.055);
   --header: rgb(248 250 252 / 0.82);
@@ -41,8 +39,6 @@
   --brand-strong: #a5f3fc;
   --brand-soft: #083344;
   --brand-on: #083344;
-  --ai: #c4b5fd;
-  --ai-soft: #2e1065;
   --focus: #67e8f9;
   --grid-line: rgb(248 250 252 / 0.055);
   --header: rgb(2 6 23 / 0.8);
@@ -64,8 +60,6 @@
     --brand-strong: #a5f3fc;
     --brand-soft: #083344;
     --brand-on: #083344;
-    --ai: #c4b5fd;
-    --ai-soft: #2e1065;
     --focus: #67e8f9;
     --grid-line: rgb(248 250 252 / 0.055);
     --header: rgb(2 6 23 / 0.8);
@@ -88,8 +82,6 @@
   --color-brand-strong: var(--brand-strong);
   --color-brand-soft: var(--brand-soft);
   --color-brand-on: var(--brand-on);
-  --color-ai: var(--ai);
-  --color-ai-soft: var(--ai-soft);
 }
 
 * {

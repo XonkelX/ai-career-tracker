@@ -1,229 +1,137 @@
-# AI Career Tracker Technical Plan
+# CareerFlow Technical Plan
 
-## 1. Scope and principles
+## 1. Product scope and principles
 
-Build a secure, maintainable job-search workspace in small, reviewable milestones. The first release will support individual users, application tracking, resume version metadata, and carefully grounded AI assistance.
+CareerFlow Version 1.0 is a privacy-conscious, single-user career management workspace for organizing applications, deadlines, statuses, resume versions, and job-search progress.
 
 Architecture principles:
 
 - Server Components by default; Client Components only for browser interaction.
-- Server Actions or route handlers validate all untrusted input with Zod.
-- Every database query that touches user data is scoped by the authenticated user ID.
-- Feature modules own their UI, actions, validation, queries, and tests.
-- AI output is a draft, never silently persisted over user-authored content.
-- AI prompts receive the minimum necessary data and must distinguish supplied facts from requested transformations.
-- External effects—uploads, AI calls, email—sit behind typed server-only interfaces.
+- Validate untrusted input on the server with shared Zod schemas.
+- Scope every user-data query and mutation with the authenticated user ID.
+- Keep ownership values out of client-controlled input.
+- Feature modules own their UI, actions, validation, persistence, and tests.
+- Preserve accessible loading, empty, success, and safe error states.
+- Keep secrets server-only and collect only the data required by the workflow.
 
-Non-goals for the foundation milestone:
+Version 1.0 does not include resume uploads, document parsing, generated career content, external provider calls, notifications, or email automation.
 
-- No authentication flow or protected-route middleware.
-- No database migration or database access layer.
-- No resume file upload or text extraction.
-- No OpenAI requests or prompt implementation.
-- No application CRUD behavior.
-
-## 2. Proposed folder structure
+## 2. Architecture
 
 ```text
 src/
 ├── app/
-│   ├── (auth)/                 # Sign-in and sign-up screens
-│   ├── (dashboard)/            # Future authenticated product routes
-│   ├── api/                    # Webhooks and endpoints that cannot use actions
-│   ├── globals.css
-│   ├── layout.tsx
-│   └── page.tsx
+│   ├── (auth)/                 # Sign-up and sign-in
+│   ├── (dashboard)/            # Authenticated product routes
+│   └── api/auth/               # Auth.js handler
 ├── components/
-│   ├── layout/                 # App shell and navigation
+│   ├── layout/                 # Application shell and navigation
+│   ├── marketing/              # Public landing page
 │   └── ui/                     # Reusable accessible primitives
 ├── features/
-│   ├── applications/           # Forms, queries, actions, Kanban/table UI
-│   ├── auth/                   # Auth forms and account workflows
-│   ├── dashboard/              # Metrics and recent activity
-│   ├── resumes/                # Resume/version workflows
-│   └── ai/                     # Grounded analysis and generation workflows
-├── generated/prisma/           # Generated client, never hand-edited
-├── lib/                        # Shared framework-independent utilities
-├── schemas/                    # Cross-feature Zod schemas
+│   ├── applications/
+│   ├── auth/
+│   ├── dashboard/
+│   └── resumes/
+├── schemas/                    # Shared Zod contracts
 └── server/
-    ├── ai/                     # OpenAI client, prompts, policies, telemetry
-    ├── auth/                   # Auth configuration and authorization helpers
-    ├── db/                     # Prisma singleton and transaction helpers
-    └── storage/                # Private resume object-storage abstraction
+    ├── applications/
+    ├── auth/
+    ├── dashboard/
+    ├── db/
+    └── resumes/
 ```
 
-Within a mature feature, prefer `components/`, `actions/`, `queries/`, `schemas/`, and `*.test.ts` colocated under the feature rather than broad global folders.
-
-## 3. Database schema
-
-The schema is defined in `prisma/schema.prisma` and versioned through committed migrations in `prisma/migrations`. The JWT-session migration removes the obsolete database `Session` table without rewriting previously applied migration history.
+## 3. Data model decisions
 
 ### Identity
 
-- `User`: unique normalized email, optional profile data, optional password hash for credentials, timestamps.
-- `Account` and `VerificationToken`: Auth.js-compatible records reserved for provider flows that may need them later. Credentials authentication does not create database session records.
-- Auth.js uses encrypted JWT sessions with a seven-day maximum age. The JWT carries only the user identifier, the `USER` role, and Auth.js standard claims.
-- Passwords, if credentials authentication is selected, use a memory-hard password hash and never appear in logs or application responses.
+- Auth.js Credentials uses encrypted JWT sessions with a seven-day lifetime.
+- Argon2id protects stored passwords.
+- User ID and the `USER` role are retained in the encrypted token and typed session.
 
 ### Applications
 
-- `JobApplication`: belongs to a user and stores company, title, location, URL, job description, salary range/currency/period, status, date applied, deadline, and notes.
-- Allowed states: `SAVED`, `APPLIED`, `INTERVIEW`, `OFFER`, `REJECTED`.
-- Indexes support status boards, date sorting, and upcoming-deadline queries per user.
-- Salary amounts are stored as `BigInt` ISO 4217 minor units in `salaryMinMinor` and `salaryMaxMinor`. For example, USD 85,500.00 is stored as `8550000`; JPY uses a zero-decimal scale, while currencies with three minor digits use their published scale.
-- Version 1.0 resolves ISO 4217 minor-unit precision through the deployed Node.js runtime's `Intl`/CLDR metadata; it does not ship a separate fixed currency table.
-- `salaryCurrency` is an uppercase ISO 4217 code and `salaryPeriod` is `HOURLY`, `MONTHLY`, or `ANNUAL`. Both are required by server validation whenever either salary bound is supplied.
-- Salary values represent gross compensation unless the source explicitly says otherwise. Validation must require non-negative values and minimum ≤ maximum. Application code must serialize Prisma `BigInt` values before returning them through JSON.
+- `JobApplication` belongs to one user.
+- Statuses: `SAVED`, `APPLIED`, `INTERVIEW`, `OFFER`, and `REJECTED`.
+- Search covers company and job title; status, salary availability, and deadline filters combine with `AND`.
+- Salary values use `BigInt` ISO 4217 minor units. Precision comes from the Node.js runtime's `Intl`/CLDR metadata.
+- `SAVED` records keep `dateApplied` null. Submitted or later statuses receive the current date when no explicit value exists.
 
 ### Resumes
 
-- `Resume`: user-owned logical document with a human-readable name.
-- `ResumeVersion`: immutable file metadata for each upload, including storage key, MIME type, byte size, content hash, optional extracted text, and version number.
-- `JobApplication.resumeVersionId` records the exact resume version used for an application.
-- File bytes belong in private object storage, not PostgreSQL; the storage key must never be a public URL.
+- `Resume.name` is the shared user-owned resume-family name.
+- `ResumeVersion.versionLabel` independently identifies a version in that family.
+- Renaming `Resume.name` intentionally renames the family for every version.
+- `JobApplication.resumeVersionId` records the version used for an opportunity.
+- Deleting a version clears its application association rather than deleting the application.
+- Version 1.0 stores metadata only; upload-specific columns remain nullable for future storage work.
 
-### AI and activity
+### Dormant extensibility
 
-- `AiArtifact`: user-owned record for resume analysis, professional summary, cover letter, or interview questions.
-- `sourceSnapshot` records the exact user-provided facts and job content used. `output` remains structured JSON for validation and rendering.
-- `Activity`: append-oriented events for recent activity and status history.
-- AI requests should store model identifiers and stable error codes, but not provider secrets or unnecessary raw telemetry.
+The schema retains the existing `AiArtifact` model, related enums, and immutable migration history. This is unused internal extensibility, not Version 1.0 product scope. There is no route, navigation item, provider client, environment credential, or visible workflow for it. Removing stable historical tables offers little benefit and would create unnecessary migration risk.
 
-### Data integrity rules
+## 4. Application routes
 
-- Cascade user deletion through owned records; treat account deletion as a deliberate, re-authenticated operation.
-- Use transactions for application updates that also append activity.
-- Enforce ownership in query predicates, not only after fetching.
-- Add optimistic concurrency or updated-at checks before enabling simultaneous edits.
+| Route                                | Responsibility                                  |
+| ------------------------------------ | ----------------------------------------------- |
+| `/`                                  | Public CareerFlow landing page                  |
+| `/sign-up`                           | Secure account registration                     |
+| `/sign-in`                           | Credentials sign-in and safe callback handling  |
+| `/dashboard`                         | User-scoped metrics, deadlines, recent updates  |
+| `/applications`                      | List, search, filters, edit/delete entry points |
+| `/applications/new`                  | Create an application                           |
+| `/applications/[applicationId]/edit` | Edit an application and resume association      |
+| `/resumes`                           | Resume-family and version list                  |
+| `/resumes/new`                       | Create resume-version metadata                  |
+| `/resumes/[resumeId]/edit`           | Edit an owned resume version                    |
+| `/settings`                          | Deferred account and preference controls        |
 
-## 4. Main application routes
+## 5. Delivery status and remaining milestones
 
-| Route                           | Rendering and responsibility                                                     |
-| ------------------------------- | -------------------------------------------------------------------------------- |
-| `/`                             | Public product landing page                                                      |
-| `/sign-up`                      | Registration form and verification guidance                                      |
-| `/sign-in`                      | Credentials/provider sign-in and safe callback handling                          |
-| `/dashboard`                    | Aggregated counts, status breakdown, conversion rate, recent activity, deadlines |
-| `/applications`                 | Searchable/filterable table and Kanban board                                     |
-| `/applications/new`             | Create form with optional resume association                                     |
-| `/applications/[applicationId]` | Detail, edit, status history, resume link, AI actions                            |
-| `/resumes`                      | Resume list and version management                                               |
-| `/resumes/[resumeId]`           | Version history, metadata, associations, deletion controls                       |
-| `/ai-tools`                     | Entry point for grounded AI workflows                                            |
-| `/settings`                     | Profile, appearance, privacy, export, account deletion                           |
-| `/api/auth/[...nextauth]`       | NextAuth route handler                                                           |
-| `/api/health`                   | Minimal deployment health endpoint without sensitive details                     |
+Completed:
 
-Dashboard and API routes require authentication except the health endpoint. Prefer Server Actions for first-party form mutations; use route handlers for authentication, webhooks, health checks, and future external clients.
+- Foundation, design system, landing page, and application shell.
+- PostgreSQL and Prisma foundation.
+- Registration, credentials login, protected routes, and JWT sessions.
+- Application create, list, edit, delete, search, and filters.
+- Dashboard overview, deadlines, conversion metric, and recent updates.
+- Resume-family/version CRUD and application association.
 
-## 5. Milestones
+Remaining Version 1.0 work:
 
-### Milestone 0 — Foundation (this change)
-
-- Create the Next.js App Router project with strict TypeScript and Tailwind.
-- Add formatting, linting, unit-test, E2E-test, Prisma, and Docker tooling.
-- Define the proposed Prisma schema without migrating it.
-- Create feature/server boundaries and placeholder routes.
-- Document setup, architecture, risks, and delivery sequence.
-
-Exit: lint, typecheck, unit tests, and production build pass; no auth or database behavior exists.
-
-### Milestone 1 — Database and application service boundaries
-
-- Review the schema and generate the initial migration.
-- Add the server-only Prisma singleton and test database strategy.
-- Add shared IDs, pagination contracts, and Zod schemas.
-- Add health checks that verify process health without exposing configuration.
-
-### Milestone 2 — Authentication and authorization
-
-- Use Auth.js Credentials with encrypted JWT sessions; document the inability to centrally revoke an issued token before expiry.
-- Implement Auth.js configuration, sign-up/sign-in/sign-out, finite session lifetime, and protected layouts.
-- Add rate limits for registration and login.
-- Add E2E tests for successful and failed authentication plus redirect safety.
-
-### Milestone 3 — Job application CRUD
-
-- Implement create, read, update, delete, status changes, and activity events.
-- Add accessible forms with React Hook Form and shared Zod schemas.
-- Add table search/filter/sort first, then Kanban interactions.
-- Add unit tests for status, salary, dates, ownership, and conversion-rate rules.
-- Add the required application-creation E2E journey.
-
-### Milestone 4 — Resume versions and private storage
-
-- Implement storage abstraction, signed upload/download, MIME sniffing, size limits, malware-scanning hook, and content hashing.
-- Add immutable resume versions and application association.
-- Define retention and secure deletion behavior before production upload access.
-
-### Milestone 5 — Dashboard analytics
-
-- Implement user-scoped aggregates, status breakdown, recent activity, deadlines, and interview conversion.
-- Document exact metric definitions and edge cases.
-
-### Milestone 6 — Grounded AI workflows
-
-- Add the server-only OpenAI client with timeouts, retries, budgets, and structured outputs.
-- Implement resume/job comparison and missing-keyword evidence.
-- Add summary, cover-letter, and interview-question drafts.
-- Require source-grounded claims, flag unsupported suggestions, and present editable drafts.
-- Add prompt-injection defenses for uploaded and pasted job content.
-
-### Milestone 7 — Product polish
-
-- Add persisted theme preference, responsive Kanban behavior, toasts, skeletons, empty states, and recoverable error boundaries.
-- Complete keyboard and screen-reader review.
-- Add export and account-deletion workflows.
-
-### Milestone 8 — Production readiness
-
-- Add CI quality gates, deployment configuration, observability, backups, restore test, migrations, and rollback plan.
-- Run dependency, container, authorization, privacy, and accessibility reviews.
-- Establish data retention, incident response, support, and model-change procedures.
+1. Implement sign-out and replace placeholder user controls.
+2. Complete settings for appearance, privacy, export, and account deletion.
+3. Add pagination and optional Kanban presentation where data scale requires it.
+4. Expand critical Playwright journeys and CI database coverage.
+5. Complete production observability, backups, restore testing, and deployment hardening.
 
 ## 6. Security and privacy risks
 
-| Risk                             | Planned control                                                                                                     |
-| -------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| Cross-user data access (IDOR)    | Include `userId` in every read/write predicate; test with two users; never trust route IDs alone                    |
-| Session theft or fixation        | Encrypted JWT in a secure, HTTP-only, same-site cookie; seven-day expiry; re-authentication for destructive actions |
-| Credential attacks               | Strong hashes, generic errors, rate limits, breached-password policy, optional verified OAuth                       |
-| OAuth provider token exposure    | Minimize scopes and retention; encrypt stored refresh/access tokens or avoid persistence when the provider permits  |
-| Resume leakage                   | Private storage, short-lived signed URLs, encryption, strict ownership checks, no public buckets                    |
-| Malicious uploads                | MIME sniffing, extension allowlist, size limits, quarantine/scanning, random storage keys                           |
-| Prompt injection in resumes/jobs | Treat documents as untrusted data, isolate instructions, use structured outputs, validate claims against sources    |
-| AI fabrication                   | Explicit grounding policy, source snapshots, unsupported-claim detection, user review before use                    |
-| Secret exposure                  | Server-only clients, environment injection, secret scanning, log redaction, no `NEXT_PUBLIC_` secrets               |
-| Sensitive logs/telemetry         | Structured allowlisted events; exclude resume text, job notes, generated drafts, tokens, and credentials            |
-| Excessive retention              | User-visible deletion/export, documented retention periods, deletion propagation to storage and AI artifacts        |
-| CSRF/open redirects              | Same-site cookies, origin checks for mutations, allowlisted callback paths                                          |
-| XSS from user/AI content         | Render as text by default; sanitize any approved rich text; strict Content Security Policy                          |
-| Cost abuse                       | Per-user quotas, request-size caps, model allowlist, timeouts, rate limits, usage monitoring                        |
-| Supply-chain vulnerabilities     | Lockfile, automated dependency review, minimal images, non-root runtime, scheduled patching                         |
-
-Privacy decisions required before AI implementation:
-
-- Whether resume/job content may be retained by any AI provider and for how long.
-- Whether users must opt in separately before sending personal data to AI.
-- Which regions and subprocessors are acceptable for target users.
-- How exports and deletion requests cover database, object storage, logs, backups, and AI artifacts.
+| Risk                         | Control                                                                 |
+| ---------------------------- | ----------------------------------------------------------------------- |
+| Cross-user data access       | Include `userId` in every predicate and verify with two-user tests      |
+| Credential attacks           | Argon2id, generic errors, rate-limit boundaries, no credential logging  |
+| Session theft                | Encrypted secure HTTP-only same-site cookie with finite expiration      |
+| Open redirects               | Accept internal absolute callback paths only                            |
+| Resume metadata leakage      | Server-session ownership checks; no public identifiers as authorization |
+| Sensitive logs               | Do not log passwords, hashes, notes, or resume metadata                 |
+| Excessive retention          | Define export, deletion, backup, and retention policy before release    |
+| CSRF and XSS                 | Same-site cookies, trusted origins, render user content as text         |
+| Supply-chain vulnerabilities | Lockfile, audit review, minimal dependencies, scheduled patching        |
 
 ## 7. Testing strategy
 
-- Unit tests: pure status rules, salary/date validation, analytics definitions, prompt-grounding validators.
-- Component tests: accessible forms, errors, filters, board interactions, AI draft review.
-- Integration tests: Prisma queries against isolated PostgreSQL, ownership, transactions, storage adapters.
-- E2E tests: authentication, application creation, status update, resume association, AI draft review.
-- Security tests: two-user isolation, unsafe redirects, upload bypasses, prompt injection, rate limits.
-
-CI should run formatting checks, lint, typecheck, unit/component tests, production build, and a focused Playwright suite. Database integration tests should use an ephemeral PostgreSQL service.
+- Unit tests for validation, normalization, salary/date rules, filters, and metrics.
+- Component tests for forms, errors, keyboard interaction, responsive presentations, and dialogs.
+- PostgreSQL integration tests for ownership, ordering, associations, and relationship behavior.
+- Playwright tests for registration, sign-in, application creation, resume management, and responsive navigation.
+- CI gates: formatting, lint, typecheck, tests, production build, migration deployment, and focused browser coverage.
 
 ## 8. Open decisions
 
-- Whether a future release should add OAuth alongside Credentials.
 - Managed PostgreSQL and deployment platform.
-- Private object-storage provider and malware-scanning service.
-- Resume text extraction method and supported file types.
-- AI model allowlist, data-processing terms, retention policy, quotas, and cost ceilings.
-- Multi-currency aggregation and reporting behavior; unlike storage and display, totals must not combine currencies without an explicit conversion policy.
+- Data export format and account-deletion retention window.
+- Pagination thresholds and whether Kanban is required for Version 1.0.
+- Private object storage and scanning controls if uploads are added later.
 - License for the public repository.

@@ -1,4 +1,4 @@
-# AI Career Tracker Design System Review
+# CareerFlow Design System Review
 
 **Reviewed artifact:** `DESIGN_SYSTEM.md` version 0.1  
 **Review perspective:** Senior staff engineering, public-release readiness  
@@ -36,14 +36,14 @@ No fundamental visual direction needs to be replaced. The document should be tig
 ### DS-03 — Semantic values bypass the documented primitive palette
 
 **Priority:** P1  
-**Issue:** Dark `surface-elevated` uses `#111C2F`, which is not a slate primitive, and dark `ai-accent` uses `#C4B5FD`, which is not listed in the violet palette. Application statuses reference blue, emerald, and rose families that have no primitive definitions or exact light/dark mappings. This contradicts the claim that primitive values live in the token layer.  
+**Issue:** Dark `surface-elevated` uses `#111C2F`, which is not a slate primitive, and dark `accent` uses `#C4B5FD`, which is not listed in the violet palette. Application statuses reference blue, emerald, and rose families that have no primitive definitions or exact light/dark mappings. This contradicts the claim that primitive values live in the token layer.
 **Improvement:** Either add the missing primitives or explicitly permit semantic-only values and document why. Define exact background, foreground, border, icon, hover, and selected tokens for every application status in both themes.
 
 ### DS-04 — Interactive state tokens are incomplete
 
 **Priority:** P1  
 **Issue:** Only the primary interaction has a hover token. There are no general tokens for pressed, selected, disabled, read-only, invalid, drag-over, drop-target, loading, or destructive hover states. The component checklist requires these states, but the token system cannot express them consistently.  
-**Improvement:** Add a state-token matrix for neutral, primary, destructive, and AI interactions. Include background, foreground, border, icon, and focus treatment for default, hover, active, selected, disabled, read-only, invalid, and loading states in both themes.
+**Improvement:** Add a state-token matrix for neutral, primary, destructive, and accent interactions. Include background, foreground, border, icon, and focus treatment for default, hover, active, selected, disabled, read-only, invalid, and loading states in both themes.
 
 ### DS-05 — Several essential visual tokens are missing
 
@@ -80,7 +80,7 @@ No fundamental visual direction needs to be replaced. The document should be tig
 ### A11Y-01 — A single-color focus ring is not robust across surfaces
 
 **Priority:** P1  
-**Issue:** One focus-ring color may pass on the canvas but disappear on brand, status, image, or AI-tinted surfaces. A visible offset helps but does not guarantee contrast against both the component and its surroundings.  
+**Issue:** One focus-ring color may pass on the canvas but disappear on brand, status, image, or accent-tinted surfaces. A visible offset helps but does not guarantee contrast against both the component and its surroundings.
 **Improvement:** Define a two-color focus treatment, such as an inner contrasting keyline plus an outer theme focus ring. Document fallback behavior for dark, brand, destructive, and forced-color surfaces, and prohibit clipping through overflow containers.
 
 ### A11Y-02 — Forced-colors and high-contrast modes are not addressed

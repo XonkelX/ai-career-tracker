@@ -6,7 +6,7 @@ import { THEME_COLORS, type Theme } from "@/lib/theme";
 
 import { MoonIcon, SunIcon } from "./icons";
 
-const THEME_CHANGE_EVENT = "ai-career-tracker:theme-change";
+const THEME_CHANGE_EVENT = "careerflow:theme-change";
 
 function getResolvedTheme(): Theme {
   const explicitTheme = document.documentElement.dataset.theme;

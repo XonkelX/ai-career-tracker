@@ -31,7 +31,7 @@ export default async function SignInPage({
         Sign in
       </h1>
       <p className="mt-3 text-slate-300">
-        Continue organizing your search and preparing stronger applications.
+        Continue organizing your applications, deadlines, and resume versions.
       </p>
       {registrationSucceeded ? (
         <p

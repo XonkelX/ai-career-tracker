@@ -4,8 +4,8 @@ import { ArrowRightIcon, CheckIcon } from "./icons";
 
 const highlights = [
   "One focused workspace",
-  "Grounded AI assistance",
-  "Your experience stays factual",
+  "Private, user-owned records",
+  "Clear deadlines and progress",
 ];
 
 export function HeroSection() {
@@ -38,9 +38,9 @@ export function HeroSection() {
           </h1>
 
           <p className="animate-enter animate-enter-delay-2 text-secondary mx-auto mt-7 max-w-2xl text-lg leading-8 text-pretty sm:text-xl">
-            Organize every opportunity, strengthen your materials with grounded
-            AI, and prepare with context—without turning your experience into
-            something it is not.
+            Organize every opportunity, keep deadlines visible, manage resume
+            versions, and understand your progress without scattering sensitive
+            career data across disconnected tools.
           </p>
 
           <div className="animate-enter animate-enter-delay-2 mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">

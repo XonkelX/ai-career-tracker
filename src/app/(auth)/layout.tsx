@@ -9,7 +9,7 @@ export default function AuthLayout({
     <main className="grid min-h-screen place-items-center bg-slate-950 px-6 py-12 text-slate-100">
       <div className="w-full max-w-md">
         <Link className="mb-8 block text-center text-lg font-semibold" href="/">
-          AI Career Tracker
+          CareerFlow
         </Link>
         {children}
       </div>

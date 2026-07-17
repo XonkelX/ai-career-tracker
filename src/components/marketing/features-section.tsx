@@ -8,7 +8,7 @@ type Feature = {
   description: string;
   detail: string;
   icon: ComponentType<SVGProps<SVGSVGElement>>;
-  tone: "brand" | "ai" | "neutral";
+  tone: "brand" | "accent" | "neutral";
 };
 
 const features: Feature[] = [
@@ -21,18 +21,18 @@ const features: Feature[] = [
     tone: "brand",
   },
   {
-    title: "AI that stays grounded",
+    title: "Deadlines that stay visible",
     description:
-      "Compare your resume with the role, surface missing keywords, and draft tailored materials from facts you provide.",
-    detail: "No invented credentials",
+      "See upcoming deadlines and recently updated opportunities before important next steps slip through the cracks.",
+    detail: "Upcoming and overdue dates",
     icon: SparkIcon,
-    tone: "ai",
+    tone: "accent",
   },
   {
-    title: "Preparation with context",
+    title: "Resume versions with context",
     description:
-      "Turn the job description into focused interview questions so your practice is relevant to the conversation ahead.",
-    detail: "Role-specific practice",
+      "Keep named resume versions organized and record exactly which version was used for each application.",
+    detail: "Owned version history",
     icon: TargetIcon,
     tone: "neutral",
   },
@@ -40,7 +40,8 @@ const features: Feature[] = [
 
 const toneClasses = {
   brand: "bg-brand-soft text-brand",
-  ai: "bg-ai-soft text-ai",
+  accent:
+    "bg-violet-100 text-violet-700 dark:bg-violet-950 dark:text-violet-200",
   neutral: "bg-surface-muted text-secondary",
 };
 
@@ -55,7 +56,7 @@ export function FeaturesSection() {
         <div id="features-title">
           <SectionHeading
             align="center"
-            description="Bring the scattered parts of a job search into one thoughtful system—then use AI where context and accuracy matter most."
+            description="Bring applications, deadlines, resume versions, and progress into one thoughtful system that remains clear as your search grows."
             eyebrow="Built for the whole search"
             title="Less tab switching. More deliberate progress."
           />
