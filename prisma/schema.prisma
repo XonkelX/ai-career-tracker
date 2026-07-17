@@ -134,7 +134,7 @@ model Resume {
   createdAt DateTime        @default(now())
   updatedAt DateTime        @updatedAt
 
-  @@index([userId])
+  @@unique([userId, name])
   @@map("resumes")
 }
 
@@ -142,11 +142,14 @@ model ResumeVersion {
   id               String           @id @default(cuid())
   resumeId         String
   version          Int
-  originalFileName String
-  storageKey       String
-  mimeType         String
-  fileSizeBytes    Int
-  contentHash      String
+  versionLabel     String
+  description      String?          @db.Text
+  sourceFileName   String?          @map("originalFileName")
+  storageKey       String?
+  mimeType         String?
+  fileSizeBytes    Int?
+  contentHash      String?
+  notes            String?          @db.Text
   extractedText    String?          @db.Text
   resume           Resume           @relation(fields: [resumeId], references: [id], onDelete: Cascade)
   applications     JobApplication[]

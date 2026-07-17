@@ -6,6 +6,7 @@ import {
 } from "./get-job-application-for-edit";
 
 const record = {
+  resumeVersionId: "resume_version_123",
   companyName: "Acme",
   jobTitle: "Engineer",
   location: "Remote",
@@ -29,6 +30,7 @@ describe("getJobApplicationForEdit", () => {
       }),
     ).resolves.toEqual({
       status: "success",
+      resumeVersionId: "resume_version_123",
       values: {
         companyName: "Acme",
         jobTitle: "Engineer",

@@ -5,9 +5,12 @@ import { notFound, redirect } from "next/navigation";
 import { getApplicationFormValues } from "@/features/applications/application-form-data";
 import type { ApplicationActionState } from "@/features/applications/application-state";
 import { createApplicationSchema } from "@/schemas/applications/application";
+import { resumeAssociationSchema } from "@/schemas/resumes/resume-version";
 import { getJobApplicationForEdit } from "@/server/applications/get-job-application-for-edit";
 import { updateJobApplication } from "@/server/applications/update-job-application";
 import { requireAuthenticatedUser } from "@/server/auth/session";
+import { associateResumeVersion } from "@/server/resumes/resume-versions";
+import type { ResumeAssociationActionState } from "@/features/resumes/resume-version-state";
 
 export async function updateJobApplicationAction(
   applicationId: string,
@@ -48,4 +51,30 @@ export async function updateJobApplicationAction(
   }
 
   redirect("/applications");
+}
+
+export async function associateResumeVersionAction(
+  applicationId: string,
+  _previousState: ResumeAssociationActionState,
+  formData: FormData,
+): Promise<ResumeAssociationActionState> {
+  const validation = resumeAssociationSchema.safeParse({
+    resumeVersionId: String(formData.get("resumeVersionId") ?? ""),
+  });
+  if (!validation.success) {
+    return { status: "error", message: "Select a valid resume version." };
+  }
+
+  const user = await requireAuthenticatedUser();
+  const result = await associateResumeVersion(
+    user.id,
+    applicationId,
+    validation.data.resumeVersionId,
+  );
+  if (!result.success) return { status: "error", message: result.message };
+
+  const outcome = result.resumeVersionId ? "attached" : "removed";
+  redirect(
+    `/applications/${applicationId}/edit?resumeAssociation=${outcome}#resume-association-title`,
+  );
 }

@@ -5,6 +5,7 @@ export const GENERIC_APPLICATION_LOAD_ERROR =
   "We could not load this application. Please try again.";
 
 interface EditableApplicationRecord {
+  resumeVersionId: string | null;
   companyName: string;
   jobTitle: string;
   location: string | null;
@@ -43,6 +44,7 @@ async function findApplication(query: {
       notes: true,
       deadline: true,
       status: true,
+      resumeVersionId: true,
     },
   });
 }
@@ -69,7 +71,11 @@ export type EditableApplicationValues = NonNullable<
 >;
 
 export type GetJobApplicationForEditResult =
-  | { status: "success"; values: EditableApplicationValues }
+  | {
+      status: "success";
+      values: EditableApplicationValues;
+      resumeVersionId: string | null;
+    }
   | { status: "not_found" }
   | { status: "error"; message: string };
 
@@ -86,6 +92,7 @@ export async function getJobApplicationForEdit(
 
     return {
       status: "success",
+      resumeVersionId: application.resumeVersionId,
       values: {
         companyName: application.companyName,
         jobTitle: application.jobTitle,

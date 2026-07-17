@@ -2,10 +2,15 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { updateJobApplicationAction } from "@/app/(dashboard)/applications/[applicationId]/edit/actions";
+import {
+  associateResumeVersionAction,
+  updateJobApplicationAction,
+} from "@/app/(dashboard)/applications/[applicationId]/edit/actions";
 import { ApplicationForm } from "@/features/applications/components/application-form";
 import { getJobApplicationForEdit } from "@/server/applications/get-job-application-for-edit";
 import { requireAuthenticatedUser } from "@/server/auth/session";
+import { ApplicationResumeAssociation } from "@/features/resumes/components/application-resume-association";
+import { listResumeVersionOptions } from "@/server/resumes/resume-versions";
 
 export const metadata: Metadata = {
   title: "Edit job application",
@@ -13,10 +18,13 @@ export const metadata: Metadata = {
 
 export default async function EditApplicationPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ applicationId: string }>;
+  searchParams: Promise<{ resumeAssociation?: string }>;
 }) {
   const { applicationId } = await params;
+  const query = await searchParams;
   const user = await requireAuthenticatedUser();
   const result = await getJobApplicationForEdit(user.id, applicationId);
 
@@ -49,6 +57,11 @@ export default async function EditApplicationPage({
 
   const today = new Date().toISOString().slice(0, 10);
   const action = updateJobApplicationAction.bind(null, applicationId);
+  const associationAction = associateResumeVersionAction.bind(
+    null,
+    applicationId,
+  );
+  const resumeOptionsResult = await listResumeVersionOptions(user.id);
 
   return (
     <section aria-labelledby="page-title">
@@ -81,6 +94,23 @@ export default async function EditApplicationPage({
           today={today}
         />
       </div>
+      <ApplicationResumeAssociation
+        action={associationAction}
+        currentResumeVersionId={result.resumeVersionId}
+        options={
+          resumeOptionsResult.status === "success"
+            ? resumeOptionsResult.options
+            : []
+        }
+        optionsError={resumeOptionsResult.status === "error"}
+        successMessage={
+          query.resumeAssociation === "attached"
+            ? "Resume version associated."
+            : query.resumeAssociation === "removed"
+              ? "Resume association removed."
+              : undefined
+        }
+      />
     </section>
   );
 }

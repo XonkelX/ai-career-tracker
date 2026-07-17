@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  type KeyboardEvent,
   type ReactNode,
   type RefObject,
   type SyntheticEvent,
@@ -59,30 +58,37 @@ export function ConfirmationDialog({
     }
   }, [initialFocusRef, open]);
 
+  useEffect(() => {
+    if (!open) return;
+
+    function trapFocus(event: globalThis.KeyboardEvent) {
+      if (event.key !== "Tab") return;
+      const dialog = dialogRef.current;
+      if (!dialog) return;
+
+      const focusable = Array.from(
+        dialog.querySelectorAll<HTMLElement>(focusableSelector),
+      );
+      const first = focusable.at(0);
+      const last = focusable.at(-1);
+      if (!first || !last) return;
+
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+
+    document.addEventListener("keydown", trapFocus, true);
+    return () => document.removeEventListener("keydown", trapFocus, true);
+  }, [open]);
+
   function handleCancel(event: SyntheticEvent<HTMLDialogElement>) {
     event.preventDefault();
     if (!busy) onCancel();
-  }
-
-  function handleKeyDown(event: KeyboardEvent<HTMLDialogElement>) {
-    if (event.key !== "Tab") return;
-
-    const dialog = dialogRef.current;
-    if (!dialog) return;
-    const focusable = Array.from(
-      dialog.querySelectorAll<HTMLElement>(focusableSelector),
-    );
-    const first = focusable.at(0);
-    const last = focusable.at(-1);
-    if (!first || !last) return;
-
-    if (event.shiftKey && document.activeElement === first) {
-      event.preventDefault();
-      last.focus();
-    } else if (!event.shiftKey && document.activeElement === last) {
-      event.preventDefault();
-      first.focus();
-    }
   }
 
   return (
@@ -91,7 +97,6 @@ export function ConfirmationDialog({
       aria-labelledby={titleId}
       className="border-border bg-surface text-primary m-auto w-[min(32rem,calc(100%-2rem))] rounded-xl border p-0 shadow-2xl backdrop:bg-slate-950/70"
       onCancel={handleCancel}
-      onKeyDown={handleKeyDown}
       ref={dialogRef}
     >
       <div className="p-6 sm:p-7">

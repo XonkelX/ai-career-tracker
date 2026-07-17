@@ -88,6 +88,13 @@ function ApplicationActions({
       >
         View details
       </Link>
+      <Link
+        aria-label={`Edit ${application.jobTitle} at ${application.companyName}`}
+        className="text-brand inline-flex min-h-11 items-center text-sm font-semibold hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-500"
+        href={`/applications/${application.id}/edit`}
+      >
+        Edit
+      </Link>
       <DeleteApplicationControl
         action={action}
         applicationId={application.id}
