@@ -54,9 +54,9 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
                 className={collapsed ? "sr-only" : "hidden min-w-0 lg:block"}
               >
                 <p className="text-primary truncate text-[11px] font-medium">
-                  Workspace ready
+                  Private workspace
                 </p>
-                <p className="text-muted mt-0.5 text-[10px]">Shell preview</p>
+                <p className="text-muted mt-0.5 text-[10px]">Account scoped</p>
               </div>
             </div>
           </div>

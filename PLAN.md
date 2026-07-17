@@ -85,26 +85,21 @@ The schema retains the existing `AiArtifact` model, related enums, and immutable
 | `/resumes`                           | Resume-family and version list                  |
 | `/resumes/new`                       | Create resume-version metadata                  |
 | `/resumes/[resumeId]/edit`           | Edit an owned resume version                    |
-| `/settings`                          | Deferred account and preference controls        |
+| `/api/health`                        | Generic PostgreSQL readiness check              |
 
-## 5. Delivery status and remaining milestones
+## 5. Delivery status and release boundary
 
 Completed:
 
 - Foundation, design system, landing page, and application shell.
 - PostgreSQL and Prisma foundation.
 - Registration, credentials login, protected routes, and JWT sessions.
+- Sign-out and production-safe shell controls.
 - Application create, list, edit, delete, search, and filters.
 - Dashboard overview, deadlines, conversion metric, and recent updates.
 - Resume-family/version CRUD and application association.
 
-Remaining Version 1.0 work:
-
-1. Implement sign-out and replace placeholder user controls.
-2. Complete settings for appearance, privacy, export, and account deletion.
-3. Add pagination and optional Kanban presentation where data scale requires it.
-4. Expand critical Playwright journeys and CI database coverage.
-5. Complete production observability, backups, restore testing, and deployment hardening.
+Version 1.0 deliberately excludes settings, data export, account deletion, pagination, Kanban, notifications, and global search. Those capabilities must not appear as placeholder controls. Production deployment still requires the external operational controls listed in `PRODUCTION_CHECKLIST.md`, including backups, trusted proxy configuration, and shared or edge authentication rate limiting.
 
 ## 6. Security and privacy risks
 
@@ -128,10 +123,10 @@ Remaining Version 1.0 work:
 - Playwright tests for registration, sign-in, application creation, resume management, and responsive navigation.
 - CI gates: formatting, lint, typecheck, tests, production build, migration deployment, and focused browser coverage.
 
-## 8. Open decisions
+## 8. Post-Version 1.0 decisions
 
 - Managed PostgreSQL and deployment platform.
 - Data export format and account-deletion retention window.
-- Pagination thresholds and whether Kanban is required for Version 1.0.
+- Pagination thresholds and whether Kanban belongs in a later release.
 - Private object storage and scanning controls if uploads are added later.
 - License for the public repository.

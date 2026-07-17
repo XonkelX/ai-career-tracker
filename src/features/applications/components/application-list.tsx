@@ -82,13 +82,6 @@ function ApplicationActions({
   return (
     <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
       <Link
-        aria-label={`View ${application.jobTitle} at ${application.companyName}`}
-        className="text-brand inline-flex min-h-11 items-center text-sm font-semibold hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-500"
-        href={`/applications/${application.id}`}
-      >
-        View details
-      </Link>
-      <Link
         aria-label={`Edit ${application.jobTitle} at ${application.companyName}`}
         className="text-brand inline-flex min-h-11 items-center text-sm font-semibold hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-500"
         href={`/applications/${application.id}/edit`}
@@ -121,19 +114,19 @@ function DesktopApplicationTable({
         <caption className="sr-only">Your saved job applications</caption>
         <thead>
           <tr className="border-border text-muted border-b text-xs tracking-wide uppercase">
-            <th className="w-[28%] px-5 py-3 font-semibold" scope="col">
+            <th className="w-[26%] px-5 py-3 font-semibold" scope="col">
               Opportunity
             </th>
             <th className="w-[14%] px-4 py-3 font-semibold" scope="col">
               Status
             </th>
-            <th className="w-[23%] px-4 py-3 font-semibold" scope="col">
+            <th className="w-[22%] px-4 py-3 font-semibold" scope="col">
               Salary
             </th>
-            <th className="w-[25%] px-4 py-3 font-semibold" scope="col">
+            <th className="w-[23%] px-4 py-3 font-semibold" scope="col">
               Dates
             </th>
-            <th className="w-[10%] px-4 py-3 font-semibold" scope="col">
+            <th className="w-[15%] px-4 py-3 font-semibold" scope="col">
               Actions
             </th>
           </tr>

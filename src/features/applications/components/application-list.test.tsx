@@ -56,7 +56,7 @@ describe("ApplicationList", () => {
     expect(within(cards).getByRole("listitem")).toHaveTextContent("Engineer");
     expect(within(cards).getByText("Interview")).toBeVisible();
     expect(
-      screen.getAllByRole("link", { name: "View Engineer at Acme" }),
+      screen.getAllByRole("link", { name: "Edit Engineer at Acme" }),
     ).toHaveLength(2);
     expect(screen.getByText("1 application")).toBeVisible();
   });

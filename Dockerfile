@@ -1,14 +1,23 @@
-FROM node:22-alpine AS dependencies
+FROM node:22-alpine AS build-base
+RUN npm install --global npm@11.10.1
+
+FROM build-base AS dependencies
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 
-FROM node:22-alpine AS builder
+FROM build-base AS builder
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
 COPY --from=dependencies /app/node_modules ./node_modules
 COPY . .
-RUN npm run build
+# Prisma configuration validates the URL while generating the client, but no
+# database connection is made during generation or the Next.js build. Runtime
+# credentials are injected only when the final image starts.
+RUN export DATABASE_URL="postgresql://build:build@127.0.0.1:5432/careerflow_build" \
+    && npm run db:generate \
+    && mkdir -p public \
+    && npm run build
 
 FROM node:22-alpine AS runner
 WORKDIR /app

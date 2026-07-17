@@ -16,7 +16,7 @@ const features: Feature[] = [
     title: "A pipeline you can trust",
     description:
       "Move applications from saved to offer with clear ownership of every detail, deadline, and next step.",
-    detail: "Kanban and table views",
+    detail: "Table and mobile card views",
     icon: PipelineIcon,
     tone: "brand",
   },

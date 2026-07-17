@@ -15,34 +15,27 @@ import { Header } from "./header";
 import { getNavigationLabel, Navigation } from "./navigation";
 import { CloseIcon } from "./shell-icons";
 import { Sidebar } from "./sidebar";
+import { UserMenu, type SignOutAction, type ShellUser } from "./user-menu";
 
 const FOCUSABLE_ELEMENTS =
   'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
-function isEditableTarget(target: EventTarget | null) {
-  if (!(target instanceof HTMLElement)) return false;
-
-  return (
-    target.tagName === "INPUT" ||
-    target.tagName === "TEXTAREA" ||
-    target.tagName === "SELECT" ||
-    target.isContentEditable
-  );
-}
-
-export function AppShell({ children }: { children: ReactNode }) {
+export function AppShell({
+  children,
+  signOutAction,
+  user,
+}: {
+  children: ReactNode;
+  signOutAction: SignOutAction;
+  user: ShellUser;
+}) {
   const pathname = usePathname();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileNavigationOpen, setIsMobileNavigationOpen] = useState(false);
-  const [announcement, setAnnouncement] = useState({ id: 0, message: "" });
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const drawerRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const wasMobileNavigationOpen = useRef(false);
-
-  const announce = useCallback((message: string) => {
-    setAnnouncement((current) => ({ id: current.id + 1, message }));
-  }, []);
 
   const closeMobileNavigation = useCallback(() => {
     setIsMobileNavigationOpen(false);
@@ -101,34 +94,6 @@ export function AppShell({ children }: { children: ReactNode }) {
     };
   }, [closeMobileNavigation, isMobileNavigationOpen]);
 
-  useEffect(() => {
-    function handleShortcut(event: KeyboardEvent) {
-      const isCommandShortcut =
-        (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k";
-
-      if (isCommandShortcut) {
-        event.preventDefault();
-        announce("The command palette is not available in this milestone.");
-        return;
-      }
-
-      if (isEditableTarget(event.target)) return;
-
-      if (event.key === "/") {
-        event.preventDefault();
-        announce("Search is not available in this milestone.");
-      } else if (event.key === "?") {
-        event.preventDefault();
-        announce(
-          "Available shortcuts: Control or Command K for commands, slash for search, and question mark for this help.",
-        );
-      }
-    }
-
-    document.addEventListener("keydown", handleShortcut);
-    return () => document.removeEventListener("keydown", handleShortcut);
-  }, [announce]);
-
   const pageTitle = getNavigationLabel(pathname);
 
   return (
@@ -154,8 +119,9 @@ export function AppShell({ children }: { children: ReactNode }) {
           <Header
             menuButtonRef={menuButtonRef}
             onOpenMobileNavigation={() => setIsMobileNavigationOpen(true)}
-            onPlaceholderAction={announce}
             pageTitle={pageTitle}
+            signOutAction={signOutAction}
+            user={user}
           />
           <main
             className="mx-auto min-h-[calc(100vh-4rem)] max-w-[1440px] px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10"
@@ -204,30 +170,11 @@ export function AppShell({ children }: { children: ReactNode }) {
               <Navigation onNavigate={closeMobileNavigation} variant="drawer" />
             </div>
             <div className="border-border border-t p-4">
-              <p className="text-primary text-xs font-medium">Demo workspace</p>
-              <p className="text-muted mt-1 text-[11px] leading-5">
-                Authentication and account data arrive in a later milestone.
-              </p>
+              <UserMenu action={signOutAction} user={user} />
             </div>
           </div>
         </div>
       ) : null}
-
-      <div
-        aria-atomic="true"
-        aria-live="polite"
-        className="pointer-events-none fixed right-4 bottom-4 z-[60] max-w-sm"
-        role="status"
-      >
-        {announcement.message ? (
-          <div
-            className="animate-preview border-border bg-surface-elevated text-secondary rounded-xl border px-4 py-3 text-sm shadow-lg"
-            key={announcement.id}
-          >
-            {announcement.message}
-          </div>
-        ) : null}
-      </div>
     </div>
   );
 }

@@ -1,25 +1,25 @@
 import type { RefObject } from "react";
 
 import { BrandMark } from "@/components/ui/brand-mark";
+import { ThemeToggle } from "@/components/marketing/theme-toggle";
 
-import { CommandPaletteButton } from "./command-palette-button";
-import { NotificationsButton } from "./notifications-button";
-import { SearchButton } from "./search-button";
 import { MenuIcon } from "./shell-icons";
-import { UserMenu } from "./user-menu";
+import { UserMenu, type SignOutAction, type ShellUser } from "./user-menu";
 
 type HeaderProps = {
   menuButtonRef: RefObject<HTMLButtonElement | null>;
   pageTitle: string;
   onOpenMobileNavigation: () => void;
-  onPlaceholderAction: (message: string) => void;
+  signOutAction: SignOutAction;
+  user: ShellUser;
 };
 
 export function Header({
   menuButtonRef,
   pageTitle,
   onOpenMobileNavigation,
-  onPlaceholderAction,
+  signOutAction,
+  user,
 }: HeaderProps) {
   return (
     <header className="border-border sticky top-0 z-30 h-16 border-b bg-[var(--header)] backdrop-blur-xl">
@@ -46,33 +46,9 @@ export function Header({
         </div>
 
         <div className="flex items-center gap-1 sm:gap-2">
-          <SearchButton
-            onActivate={() =>
-              onPlaceholderAction("Search is not available in this milestone.")
-            }
-          />
-          <CommandPaletteButton
-            onActivate={() =>
-              onPlaceholderAction(
-                "The command palette is not available in this milestone.",
-              )
-            }
-          />
-          <NotificationsButton
-            onActivate={() =>
-              onPlaceholderAction(
-                "Notifications are not available in this milestone.",
-              )
-            }
-          />
+          <ThemeToggle />
           <div className="bg-border mx-1 hidden h-6 w-px sm:block" />
-          <UserMenu
-            onActivate={() =>
-              onPlaceholderAction(
-                "The user menu is not available in this milestone.",
-              )
-            }
-          />
+          <UserMenu action={signOutAction} user={user} />
         </div>
       </div>
     </header>

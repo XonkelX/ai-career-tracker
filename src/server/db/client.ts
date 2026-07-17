@@ -9,7 +9,9 @@ function createPrismaClient(): PrismaClient {
 
   return new PrismaClient({
     adapter,
-    log: process.env.NODE_ENV === "development" ? ["warn", "error"] : ["error"],
+    // Production database errors are converted to generic application results.
+    // Avoid driver logging that could include query or connection context.
+    log: process.env.NODE_ENV === "development" ? ["warn", "error"] : [],
   });
 }
 

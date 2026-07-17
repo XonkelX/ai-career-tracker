@@ -17,6 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  applicationName: "CareerFlow",
   title: {
     default: "CareerFlow",
     template: "%s | CareerFlow",
@@ -29,6 +30,13 @@ export const metadata: Metadata = {
     "application deadlines",
     "resume version management",
   ],
+  openGraph: {
+    description:
+      "Track job applications, deadlines, progress, and resume versions in one privacy-conscious workspace.",
+    siteName: "CareerFlow",
+    title: "CareerFlow",
+    type: "website",
+  },
 };
 
 export async function generateViewport(): Promise<Viewport> {
@@ -57,6 +65,7 @@ export default async function RootLayout({
   return (
     <html
       className={`${geistSans.variable} ${geistMono.variable}`}
+      data-scroll-behavior="smooth"
       data-theme={theme}
       lang="en"
     >

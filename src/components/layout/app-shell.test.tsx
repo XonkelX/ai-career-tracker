@@ -9,6 +9,17 @@ const { mockUsePathname } = vi.hoisted(() => ({
   mockUsePathname: vi.fn(),
 }));
 
+const signOutAction = vi.fn(async () => undefined);
+const shellUser = { email: "taylor@example.com", name: "Taylor Rivera" };
+
+function renderShell() {
+  return render(
+    <AppShell signOutAction={signOutAction} user={shellUser}>
+      <h1>Page content</h1>
+    </AppShell>,
+  );
+}
+
 vi.mock("next/navigation", () => ({
   usePathname: mockUsePathname,
 }));
@@ -16,14 +27,24 @@ vi.mock("next/navigation", () => ({
 describe("AppShell", () => {
   beforeEach(() => {
     mockUsePathname.mockReturnValue("/applications/new");
+    signOutAction.mockClear();
+    vi.stubGlobal(
+      "matchMedia",
+      vi.fn(() => ({
+        matches: false,
+        media: "(prefers-color-scheme: dark)",
+        onchange: null,
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+      })),
+    );
   });
 
   it("uses CareerFlow branding and omits AI navigation from Version 1.0", () => {
-    render(
-      <AppShell>
-        <h1>Page content</h1>
-      </AppShell>,
-    );
+    renderShell();
 
     expect(
       screen.getByRole("link", { name: "CareerFlow dashboard" }),
@@ -32,17 +53,12 @@ describe("AppShell", () => {
       "Dashboard",
       "Applications",
       "Resumes",
-      "Settings",
     ]);
   });
 
   it("marks nested navigation as active and collapses the desktop sidebar", async () => {
     const user = userEvent.setup();
-    render(
-      <AppShell>
-        <h1>Page content</h1>
-      </AppShell>,
-    );
+    renderShell();
 
     expect(screen.getByRole("link", { name: "Applications" })).toHaveAttribute(
       "aria-current",
@@ -63,11 +79,7 @@ describe("AppShell", () => {
 
   it("manages focus, traps Tab, and restores focus when Escape closes the drawer", async () => {
     const user = userEvent.setup();
-    render(
-      <AppShell>
-        <h1>Page content</h1>
-      </AppShell>,
-    );
+    renderShell();
 
     const openButton = screen.getByRole("button", {
       name: "Open navigation menu",
@@ -85,7 +97,7 @@ describe("AppShell", () => {
 
     await user.tab({ shift: true });
     expect(
-      within(drawer).getByRole("link", { name: "Settings" }),
+      within(drawer).getByRole("button", { name: "Sign out Taylor Rivera" }),
     ).toHaveFocus();
 
     await user.keyboard("{Escape}");
@@ -94,29 +106,14 @@ describe("AppShell", () => {
     expect(openButton).toHaveFocus();
   });
 
-  it("provides placeholder feedback for every keyboard shortcut", async () => {
-    const user = userEvent.setup();
-    render(
-      <AppShell>
-        <h1>Page content</h1>
-      </AppShell>,
-    );
+  it("exposes working theme and sign-out controls without placeholder actions", () => {
+    renderShell();
 
-    const status = screen.getByRole("status");
-
-    await user.keyboard("{Control>}k{/Control}");
-    expect(status).toHaveTextContent(
-      "The command palette is not available in this milestone.",
-    );
-
-    await user.keyboard("/");
-    expect(status).toHaveTextContent(
-      "Search is not available in this milestone.",
-    );
-
-    await user.keyboard("?");
-    expect(status).toHaveTextContent(
-      "Available shortcuts: Control or Command K for commands, slash for search, and question mark for this help.",
-    );
+    expect(
+      screen.getByRole("button", { name: "Switch to dark theme" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Sign out Taylor Rivera" }),
+    ).toBeInTheDocument();
   });
 });

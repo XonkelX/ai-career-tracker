@@ -3,13 +3,13 @@ services:
     image: postgres:17-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ai_career_tracker
+      POSTGRES_DB: careerflow
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
       - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d ai_career_tracker"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d careerflow"]
       interval: 5s
       timeout: 5s
       retries: 10

@@ -36,8 +36,8 @@ export default async function ResumesPage({
             Resume versions
           </h1>
           <p className="text-secondary mt-3 max-w-2xl">
-            Track the resume variants you use for different opportunities. File
-            upload is not included yet.
+            Track resume families, version labels, source filenames, and the
+            opportunities where each version is used.
           </p>
         </div>
         <Link
